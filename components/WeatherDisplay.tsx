@@ -27,11 +27,11 @@ export function WeatherDisplay({
         Oggi
       </p>
       <div className="flex flex-col gap-3">
-        <h2 className="whitespace-nowrap font-serif text-8xl leading-none tracking-tighter sm:text-9xl">
+        <h2 className="flex flex-col items-center gap-1 font-serif text-8xl leading-none tracking-tighter sm:block sm:whitespace-nowrap sm:text-9xl">
           <span className={mood.condition === "sunny" ? "text-[var(--sun)]" : "text-[var(--rain)]"}>
             {mood.icon}
-          </span>{" "}
-          {mood.answer}
+          </span>
+          <span>{mood.answer}</span>
         </h2>
         <p className="text-base font-medium text-[var(--muted)] sm:text-lg">
           {mood.aside}
