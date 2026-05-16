@@ -64,7 +64,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
 
   return (
     <div className="relative w-full">
-      <span className="mb-2 block text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-[var(--muted)]">
+      <span className="ui-meta-label mb-2 block text-xs font-semibold uppercase leading-none tracking-widest">
         Scegli dove soffrire
       </span>
       <div
@@ -126,7 +126,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
               >
                 {city.name}
                 {isSelected ? (
-                  <span className="font-sans text-[0.6rem] uppercase tracking-[0.28em]">
+                  <span className="font-sans text-xs uppercase tracking-widest">
                     scelta
                   </span>
                 ) : null}

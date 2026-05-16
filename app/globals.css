@@ -40,25 +40,10 @@ body {
 
 .ui-meta-label {
   color: var(--muted);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.42em;
-  line-height: 0.9rem;
-  text-transform: uppercase;
 }
 
 .ui-meta-value {
   color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.15rem;
-}
-
-@media (min-width: 640px) {
-  .ui-meta-value {
-    font-size: 0.875rem;
-    line-height: 1.15rem;
-  }
 }
 
 ::selection {

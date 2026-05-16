@@ -16,11 +16,11 @@ export function WeatherDisplay({ children, city, weatherCode }: WeatherDisplayPr
       aria-label="Risposta"
       className="flex min-h-0 flex-1 flex-col items-center justify-center py-6 text-center sm:py-8"
     >
-      <p className="mb-5 text-xs font-semibold uppercase tracking-[0.5em] text-[var(--muted)]">
+      <p className="ui-meta-label mb-5 text-xs font-semibold uppercase leading-none tracking-widest">
         Oggi
       </p>
       <div className="flex flex-col gap-3">
-        <h2 className="whitespace-nowrap font-serif text-[clamp(5.25rem,15vw,13.5rem)] leading-[0.82] tracking-[-0.08em]">
+        <h2 className="whitespace-nowrap font-serif text-8xl leading-none tracking-tighter sm:text-9xl">
           <span className={mood.condition === "sunny" ? "text-[var(--sun)]" : "text-[var(--rain)]"}>
             {mood.icon}
           </span>{" "}

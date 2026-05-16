@@ -42,18 +42,18 @@ export default async function Home({ searchParams }: HomeProps) {
       <header className="shrink-0 px-0 lg:px-[20%]">
         <div className="flex flex-col items-start justify-between gap-5 sm:flex-row">
           <div className="min-w-0">
-            <p className="mb-2 whitespace-nowrap text-[0.65rem] font-semibold uppercase tracking-[0.42em] text-[var(--muted)]">
+            <p className="ui-meta-label mb-2 whitespace-nowrap text-xs font-semibold uppercase leading-none tracking-widest">
               La previsione più inutile d’Italia.
             </p>
-            <h1 className="whitespace-nowrap font-serif text-4xl leading-none tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+            <h1 className="whitespace-nowrap font-serif text-4xl leading-none tracking-tighter sm:text-6xl lg:text-7xl">
               C’è il sole?
             </h1>
           </div>
           <div className="min-w-0 self-end text-right">
-            <p className="ui-meta-label whitespace-nowrap">
+            <p className="ui-meta-label whitespace-nowrap text-xs font-semibold uppercase leading-none tracking-widest">
               {city.name}
             </p>
-            <p className="ui-meta-value mt-2 whitespace-nowrap">
+            <p className="ui-meta-value mt-2 whitespace-nowrap text-sm font-medium leading-snug">
               {todayLabel}
             </p>
           </div>
