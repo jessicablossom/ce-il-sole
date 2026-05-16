@@ -40,6 +40,13 @@ export function getYearStartIsoDate(isoDate: string): string {
   return `${isoDate.slice(0, 4)}-01-01`;
 }
 
+export function addDaysToIsoDate(isoDate: string, days: number): string {
+  const date = dateFromIsoDate(isoDate);
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return date.toISOString().slice(0, 10);
+}
+
 function getDatePart(parts: Intl.DateTimeFormatPart[], type: string): string {
   const part = parts.find((value) => value.type === type);
 

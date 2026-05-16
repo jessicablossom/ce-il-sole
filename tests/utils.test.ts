@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDaysToIsoDate,
   formatItalianDate,
   getIsoDateInTimeZone,
   getYearStartIsoDate,
@@ -18,5 +19,10 @@ describe("date utilities", () => {
 
   it("returns the current year's first day", () => {
     expect(getYearStartIsoDate("2026-05-16")).toBe("2026-01-01");
+  });
+
+  it("adds days to ISO dates without timezone drift", () => {
+    expect(addDaysToIsoDate("2026-05-16", -5)).toBe("2026-05-11");
+    expect(addDaysToIsoDate("2026-01-01", 1)).toBe("2026-01-02");
   });
 });

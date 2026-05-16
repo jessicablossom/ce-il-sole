@@ -1,10 +1,11 @@
 import type { City, DailyWeather, WeatherMood, WeatherReport } from "@/types/weather";
 import { getWeatherConditionFromCode, isSunnyWeatherCode } from "./weatherCodes";
 import { getWeatherMoodCopy } from "./weatherCopy";
-import { getIsoDateInTimeZone, getYearStartIsoDate } from "./utils";
+import { addDaysToIsoDate, getIsoDateInTimeZone, getYearStartIsoDate } from "./utils";
 
 const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const ARCHIVE_ENDPOINT = "https://archive-api.open-meteo.com/v1/archive";
+const ARCHIVE_DATA_DELAY_DAYS = 5;
 
 type OpenMeteoDailyResponse = {
   daily?: {
@@ -16,10 +17,13 @@ type OpenMeteoDailyResponse = {
 export async function getWeatherReport(city: City, now = new Date()): Promise<WeatherReport> {
   const todayIsoDate = getIsoDateInTimeZone(now, city.timeZone);
   const yearStartIsoDate = getYearStartIsoDate(todayIsoDate);
+  const archiveEndIsoDate = addDaysToIsoDate(todayIsoDate, -ARCHIVE_DATA_DELAY_DAYS);
 
   const [forecastDays, archiveDays] = await Promise.all([
     fetchDailyWeather(buildForecastUrl(city)),
-    fetchDailyWeather(buildArchiveUrl(city, yearStartIsoDate, todayIsoDate)),
+    archiveEndIsoDate >= yearStartIsoDate
+      ? fetchDailyWeather(buildArchiveUrl(city, yearStartIsoDate, archiveEndIsoDate))
+      : Promise.resolve([]),
   ]);
 
   const today = forecastDays.find((day) => day.date === todayIsoDate) ?? forecastDays[0] ?? null;

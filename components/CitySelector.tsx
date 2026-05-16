@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type KeyboardEvent, useMemo, useState } from "react";
+import { type KeyboardEvent, useMemo, useState, useTransition } from "react";
 import { filterCitiesByQuery, getNextActiveCityId } from "@/lib/citySearch";
 import type { City } from "@/types/weather";
 
@@ -12,6 +12,7 @@ type CitySelectorProps = {
 
 export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCityId, setActiveCityId] = useState<string | null>(selectedCityId);
   const selectedCity = cities.find((city) => city.id === selectedCityId) ?? cities[0];
@@ -26,7 +27,12 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
     }
 
     setIsOpen(false);
-    router.push(`/?city=${cityId}`);
+
+    if (cityId !== selectedCityId) {
+      startTransition(() => {
+        router.push(`/?city=${cityId}`);
+      });
+    }
   }
 
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -68,6 +74,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
         Scegli dove soffrire
       </span>
       <div
+        aria-busy={isPending}
         className="flex w-full items-center justify-between border-b border-[var(--line)]/30 bg-transparent px-0 py-3 text-left transition hover:border-[var(--line)]/70 focus-within:border-[var(--line)]"
       >
         <input
@@ -92,6 +99,11 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
         <span className="text-sm text-[var(--muted)]" aria-hidden="true">
           ↓
         </span>
+        {isPending ? (
+          <span className="sr-only" role="status">
+            Caricamento città...
+          </span>
+        ) : null}
       </div>
 
       {isOpen ? (
@@ -122,6 +134,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
                 onMouseEnter={() => setActiveCityId(city.id)}
                 role="option"
                 aria-selected={isSelected}
+                disabled={isPending}
                 type="button"
               >
                 {city.name}
