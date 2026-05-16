@@ -1,6 +1,7 @@
 import { AnnualStats } from "@/components/AnnualStats";
 import { CitySelector } from "@/components/CitySelector";
 import { Layout } from "@/components/Layout";
+import { LieCta } from "@/components/LieCta";
 import { NightDisplay } from "@/components/NightDisplay";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { WeatherFavicon } from "@/components/WeatherFavicon";
@@ -9,26 +10,36 @@ import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
 import { formatItalianDate } from "@/lib/utils";
 import { getWeatherConditionFromCode, getWeatherReport } from "@/lib/weather";
+import { getPreviewWeatherCode, isSunLiePreview } from "@/lib/weatherPreview";
 
 type HomeProps = {
   searchParams: Promise<{
     city?: string | string[];
+    preview?: string | string[];
   }>;
 };
 
 export default async function Home({ searchParams }: HomeProps) {
   const query = await searchParams;
   const selectedCityParam = query.city;
+  const previewParam = getSingleQueryParam(query.preview);
+  const previewWeatherCode = getPreviewWeatherCode(previewParam);
+  const isPreview = previewWeatherCode !== null;
   const selectedCityId =
     typeof selectedCityParam === "string" ? selectedCityParam : DEFAULT_CITY_ID;
   const city = getCityById(selectedCityId);
   const today = new Date();
   const todayLabel = formatItalianDate(today, city.timeZone);
-  const isNight = isNightInCentralEurope(today);
+  const isNight = isPreview ? false : isNightInCentralEurope(today);
   const weatherReport = await getReportOrNull(city, today);
-  const weatherCode = weatherReport?.today?.weatherCode ?? null;
+  const actualWeatherCode = weatherReport?.today?.weatherCode ?? null;
+  const actualWeatherCondition = getWeatherConditionFromCode(actualWeatherCode);
+  const weatherCode = previewWeatherCode ?? actualWeatherCode;
   const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
   const faviconCondition = getWeatherConditionFromCode(weatherCode);
+  const isLying = isSunLiePreview(previewParam);
+  const shouldShowLieCta =
+    isLying || (actualWeatherCondition !== "sunny" && actualWeatherCondition !== "unknown");
 
   return (
     <Layout weatherCondition={weatherCondition}>
@@ -59,7 +70,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {isNight ? (
           <>
-            <NightDisplay city={city} weatherCode={weatherCode} />
+            <NightDisplay city={city} weatherCode={actualWeatherCode} />
             {weatherReport ? (
               <AnnualStats
                 cityName={weatherReport.city.name}
@@ -69,24 +80,28 @@ export default async function Home({ searchParams }: HomeProps) {
               />
             ) : null}
           </>
-        ) : weatherReport ? (
+        ) : isPreview || weatherReport ? (
           <>
             <WeatherDisplay
               city={city}
+              showShareCard={!isPreview}
               weatherCode={weatherCode}
             >
-              <AnnualStats
-                cityName={weatherReport.city.name}
-                lastSunnyDay={weatherReport.lastSunnyDay}
-                sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
-                timeZone={weatherReport.city.timeZone}
-              />
+              {weatherReport && !isPreview ? (
+                <AnnualStats
+                  cityName={weatherReport.city.name}
+                  lastSunnyDay={weatherReport.lastSunnyDay}
+                  sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
+                  timeZone={weatherReport.city.timeZone}
+                />
+              ) : null}
             </WeatherDisplay>
           </>
         ) : (
           <WeatherUnavailable />
         )}
       </div>
+      {shouldShowLieCta ? <LieCta isLying={isLying} selectedCityId={city.id} /> : null}
     </Layout>
   );
 }
@@ -106,4 +121,12 @@ async function getReportOrNull(
 
     return null;
   }
+}
+
+function getSingleQueryParam(param: string | string[] | undefined): string | null {
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param?.[0] ?? null;
 }
