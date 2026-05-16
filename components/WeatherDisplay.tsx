@@ -21,7 +21,7 @@ export function WeatherDisplay({
   return (
     <section
       aria-label="Risposta"
-      className="flex min-h-0 flex-1 flex-col items-center justify-center py-6 text-center sm:py-8"
+      className="flex min-h-0 flex-1 flex-col items-center justify-center px-2.5 py-6 text-center sm:px-0 sm:py-8"
     >
       <p className="ui-meta-label mb-5 text-xs font-semibold uppercase leading-none tracking-widest">
         Oggi
