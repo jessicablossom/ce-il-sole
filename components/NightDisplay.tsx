@@ -20,7 +20,7 @@ export function NightDisplay({ city, weatherCode }: NightDisplayProps) {
       <h2 className="whitespace-nowrap font-serif text-7xl leading-none tracking-tighter text-[var(--foreground)] sm:text-9xl">
         È NOTTE.
       </h2>
-      <p className="mt-5 text-base font-medium text-[var(--muted)] sm:text-lg">
+      <p className="mt-5 max-w-md text-base font-medium leading-snug text-[var(--muted)]">
         Il sole ha chiuso. Contro ogni pronostico, anche oggi è arrivata la notte.
       </p>
       <div className="mt-8 w-full border-t border-[var(--line)]/10 pt-5">

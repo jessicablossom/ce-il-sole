@@ -60,8 +60,8 @@ components/
   AnnualStats.tsx       Statistiche annuali.
   CitySelector.tsx      Selettore ricercabile delle città.
   Layout.tsx            Layout e tema cromatico per condizione meteo.
-  LieCta.tsx            CTA per "mentire" sul sole.
   NightDisplay.tsx      Stato notturno.
+  ShareCardButton.tsx   Card verticale condivisibile.
   WeatherDisplay.tsx    Verdetto principale.
   WeatherFavicon.tsx    Favicon dinamica.
   WeatherUnavailable.tsx Fallback quando il meteo non arriva.
@@ -75,7 +75,6 @@ lib/
   weatherCodes.ts    Mapping codici WMO.
   weatherCopy.ts     Microcopy ironica.
   weatherIcons.ts    Icone per condizione.
-  weatherPreview.ts  Preview/lie mode.
 
 tests/
   *.test.ts          Test unitari per utility e logica meteo.
@@ -149,8 +148,8 @@ components/
   AnnualStats.tsx       Yearly statistics.
   CitySelector.tsx      Searchable city selector.
   Layout.tsx            Layout and weather-based visual theme.
-  LieCta.tsx            CTA for the fake sunny preview.
   NightDisplay.tsx      Night state.
+  ShareCardButton.tsx   Shareable vertical card.
   WeatherDisplay.tsx    Main verdict.
   WeatherFavicon.tsx    Dynamic favicon.
   WeatherUnavailable.tsx Weather fallback.
@@ -164,7 +163,6 @@ lib/
   weatherCodes.ts    WMO code mapping.
   weatherCopy.ts     Ironic weather copy.
   weatherIcons.ts    Weather condition icons.
-  weatherPreview.ts  Preview/lie mode.
 
 tests/
   *.test.ts          Unit tests for utilities and weather logic.

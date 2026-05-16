@@ -20,8 +20,7 @@ export function AnnualStats({
     >
       <p className="max-w-md text-base font-medium leading-snug">
         Lo sapevi? {cityName} ha avuto{" "}
-        <span className="text-[var(--foreground)]">{sunnyDaysThisYear}</span> giorni di sole
-        quest’anno.
+        {sunnyDaysThisYear} giorni di sole quest’anno.
       </p>
       <div className="text-xs leading-5">
         <p className="ui-meta-label whitespace-nowrap text-xs font-semibold uppercase leading-none tracking-widest">
