@@ -1,65 +1,124 @@
-import Image from "next/image";
+import { AnnualStats } from "@/components/AnnualStats";
+import { CitySelector } from "@/components/CitySelector";
+import { Layout } from "@/components/Layout";
+import { LieCta } from "@/components/LieCta";
+import { NightDisplay } from "@/components/NightDisplay";
+import { WeatherDisplay } from "@/components/WeatherDisplay";
+import { WeatherUnavailable } from "@/components/WeatherUnavailable";
+import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
+import { isNightInCentralEurope } from "@/lib/dayPeriod";
+import { formatItalianDate } from "@/lib/utils";
+import { getWeatherConditionFromCode, getWeatherReport } from "@/lib/weather";
+import { getPreviewWeatherCode, isSunLiePreview } from "@/lib/weatherPreview";
 
-export default function Home() {
+type HomeProps = {
+  searchParams: Promise<{
+    city?: string | string[];
+    preview?: string | string[];
+  }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const query = await searchParams;
+  const selectedCityParam = query.city;
+  const previewParam = getSingleQueryParam(query.preview);
+  const previewWeatherCode = getPreviewWeatherCode(previewParam);
+  const isPreview = previewWeatherCode !== null;
+  const selectedCityId =
+    typeof selectedCityParam === "string" ? selectedCityParam : DEFAULT_CITY_ID;
+  const city = getCityById(selectedCityId);
+  const today = new Date();
+  const todayLabel = formatItalianDate(today, city.timeZone);
+  const isNight = isPreview ? false : isNightInCentralEurope(today);
+  const weatherReport = await getReportOrNull(city, today);
+  const weatherCode = previewWeatherCode ?? weatherReport?.today?.weatherCode ?? null;
+  const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <Layout weatherCondition={weatherCondition}>
+      <header className="shrink-0 px-0 lg:px-[20%]">
+        <div className="flex flex-col items-start justify-between gap-5 sm:flex-row">
+          <div className="min-w-0">
+            <p className="mb-2 whitespace-nowrap text-[0.65rem] font-semibold uppercase tracking-[0.42em] text-[var(--muted)]">
+              La previsione più inutile d’Italia.
+            </p>
+            <h1 className="whitespace-nowrap font-serif text-4xl leading-none tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+              C’è il sole?
+            </h1>
+          </div>
+          <div className="min-w-0 self-end text-right">
+            <p className="ui-meta-label whitespace-nowrap">
+              {city.name}
+            </p>
+            <p className="ui-meta-value mt-2 whitespace-nowrap">
+              {todayLabel}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col px-0 pt-7 lg:px-[20%] lg:pt-9">
+        <CitySelector key={city.id} cities={CITIES} selectedCityId={city.id} />
+
+        {isNight ? (
+          <>
+            <NightDisplay city={city} weatherCode={weatherReport?.today?.weatherCode ?? null} />
+            {weatherReport ? (
+              <AnnualStats
+                cityName={weatherReport.city.name}
+                lastSunnyDay={weatherReport.lastSunnyDay}
+                sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
+                timeZone={weatherReport.city.timeZone}
+              />
+            ) : null}
+          </>
+        ) : isPreview || weatherReport ? (
+          <>
+            <WeatherDisplay
+              city={city}
+              weatherCode={weatherCode}
+            >
+              {weatherReport && !isPreview ? (
+                <AnnualStats
+                  cityName={weatherReport.city.name}
+                  lastSunnyDay={weatherReport.lastSunnyDay}
+                  sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
+                  timeZone={weatherReport.city.timeZone}
+                />
+              ) : null}
+            </WeatherDisplay>
+          </>
+        ) : (
+          <WeatherUnavailable />
+        )}
+      </div>
+      <LieCta isLying={isSunLiePreview(previewParam)} selectedCityId={city.id} />
+    </Layout>
   );
 }
+
+async function getReportOrNull(
+  city: Parameters<typeof getWeatherReport>[0],
+  today: Date,
+) {
+  try {
+    return await getWeatherReport(city, today);
+  } catch (error) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("Weather report unavailable");
+    } else {
+      console.error("Weather report unavailable", error);
+    }
+
+    return null;
+  }
+}
+
+function getSingleQueryParam(param: string | string[] | undefined): string | null {
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param?.[0] ?? null;
+}
+
