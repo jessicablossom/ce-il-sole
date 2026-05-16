@@ -32,9 +32,13 @@ export default async function Home({ searchParams }: HomeProps) {
   const todayLabel = formatItalianDate(today, city.timeZone);
   const isNight = isPreview ? false : isNightInCentralEurope(today);
   const weatherReport = await getReportOrNull(city, today);
-  const weatherCode = previewWeatherCode ?? weatherReport?.today?.weatherCode ?? null;
+  const actualWeatherCode = weatherReport?.today?.weatherCode ?? null;
+  const actualWeatherCondition = getWeatherConditionFromCode(actualWeatherCode);
+  const weatherCode = previewWeatherCode ?? actualWeatherCode;
   const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
   const faviconCondition = getWeatherConditionFromCode(weatherCode);
+  const isLying = isSunLiePreview(previewParam);
+  const shouldShowLieCta = isLying || actualWeatherCondition === "cloudy";
 
   return (
     <Layout weatherCondition={weatherCondition}>
@@ -65,7 +69,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {isNight ? (
           <>
-            <NightDisplay city={city} weatherCode={weatherReport?.today?.weatherCode ?? null} />
+            <NightDisplay city={city} weatherCode={actualWeatherCode} />
             {weatherReport ? (
               <AnnualStats
                 cityName={weatherReport.city.name}
@@ -95,7 +99,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <WeatherUnavailable />
         )}
       </div>
-      <LieCta isLying={isSunLiePreview(previewParam)} selectedCityId={city.id} />
+      {shouldShowLieCta ? <LieCta isLying={isLying} selectedCityId={city.id} /> : null}
     </Layout>
   );
 }
