@@ -21,11 +21,11 @@ export function Layout({ children, weatherCondition = "cloudy" }: LayoutProps) {
   return (
     <main
       className={[
-        "h-dvh overflow-hidden px-3 py-3 text-[var(--foreground)] transition-colors duration-700 sm:px-5 sm:py-4 lg:px-6",
+        "min-h-dvh overflow-y-auto px-3 py-3 text-[var(--foreground)] transition-colors duration-700 sm:px-5 sm:py-4 lg:h-dvh lg:overflow-hidden lg:px-6",
         WEATHER_THEME_CLASS_NAMES[weatherCondition],
       ].join(" ")}
     >
-      <div className="mx-auto flex h-full w-full max-w-[1800px] flex-col overflow-hidden px-3 pb-20 pt-4 sm:px-6 sm:pb-24 sm:pt-6 lg:px-8 lg:py-7">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[1800px] flex-col px-3 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-6 lg:h-full lg:min-h-0 lg:overflow-hidden lg:px-8 lg:py-7">
         {children}
       </div>
     </main>

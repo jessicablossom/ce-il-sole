@@ -1,5 +1,6 @@
 import type { City, WeatherCondition, WeatherMood } from "@/types/weather";
 import { isNegativeWeatherCondition } from "./weatherCodes";
+import { getWeatherIconForCondition } from "./weatherIcons";
 
 const SUNNY_ASIDES = [
   "Goditelo. Statisticamente finirà.",
@@ -66,7 +67,7 @@ export function getWeatherMoodCopy({
   if (isNegativeWeatherCondition(condition)) {
     return {
       condition,
-      icon: getNegativeWeatherIcon(condition),
+      icon: getWeatherIconForCondition(condition),
       answer: "Purtroppo no.",
       aside: "Naturalmente. Che domanda.",
     };
@@ -74,24 +75,10 @@ export function getWeatherMoodCopy({
 
   return {
     condition: "cloudy",
-    icon: "☁️",
+    icon: getWeatherIconForCondition("cloudy"),
     answer: "No.",
     aside: pickAside(CLOUDY_ASIDES, weatherCode, city),
   };
-}
-
-function getNegativeWeatherIcon(
-  condition: Extract<WeatherCondition, "drizzle" | "rainy" | "snowy" | "stormy">,
-): WeatherMood["icon"] {
-  if (condition === "snowy") {
-    return "❄️";
-  }
-
-  if (condition === "stormy") {
-    return "⛈️";
-  }
-
-  return "🌧️";
 }
 
 function pickAside(asides: readonly string[], weatherCode: number, city?: City): string {

@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { LieCta } from "@/components/LieCta";
 import { NightDisplay } from "@/components/NightDisplay";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
+import { WeatherFavicon } from "@/components/WeatherFavicon";
 import { WeatherUnavailable } from "@/components/WeatherUnavailable";
 import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
@@ -33,9 +34,11 @@ export default async function Home({ searchParams }: HomeProps) {
   const weatherReport = await getReportOrNull(city, today);
   const weatherCode = previewWeatherCode ?? weatherReport?.today?.weatherCode ?? null;
   const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
+  const faviconCondition = getWeatherConditionFromCode(weatherCode);
 
   return (
     <Layout weatherCondition={weatherCondition}>
+      <WeatherFavicon condition={faviconCondition} />
       <header className="shrink-0 px-0 lg:px-[20%]">
         <div className="flex flex-col items-start justify-between gap-5 sm:flex-row">
           <div className="min-w-0">
