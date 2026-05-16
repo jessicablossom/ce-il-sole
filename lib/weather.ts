@@ -1,3 +1,4 @@
+import axios, { isAxiosError } from "axios";
 import type { City, DailyWeather, WeatherMood, WeatherReport } from "@/types/weather";
 import { getWeatherConditionFromCode, isSunnyWeatherCode } from "./weatherCodes";
 import { getWeatherMoodCopy } from "./weatherCopy";
@@ -91,13 +92,16 @@ function buildArchiveUrl(city: City, startDate: string, endDate: string): string
 }
 
 async function fetchDailyWeather(url: string): Promise<DailyWeather[]> {
-  const response = await fetch(url, { cache: "no-store" });
+  try {
+    const response = await axios.get<OpenMeteoDailyResponse>(url);
+    return parseDailyWeatherResponse(response.data);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(`Open-Meteo request failed with status ${error.response.status}`);
+    }
 
-  if (!response.ok) {
-    throw new Error(`Open-Meteo request failed with status ${response.status}`);
+    throw error;
   }
-
-  return parseDailyWeatherResponse((await response.json()) as OpenMeteoDailyResponse);
 }
 
 function isStringArray(value: unknown): value is string[] {
