@@ -36,6 +36,7 @@ export default function Loading() {
             <div className="mx-auto mb-6 h-3 w-16 bg-[var(--line)]/20" />
             <div className="mx-auto h-24 w-72 bg-[var(--line)]/20 sm:h-32 sm:w-96" />
             <div className="mx-auto mt-5 h-5 w-64 bg-[var(--line)]/20" />
+            <div className="mx-auto mt-6 h-4 w-28 bg-[var(--line)]/20" />
             <div className="mx-auto mt-7 flex w-full max-w-md flex-col items-center gap-5 border-t border-[var(--line)]/5 pt-5 sm:mt-6 sm:gap-3 sm:pt-4">
               <div className="h-5 w-72 bg-[var(--line)]/20" />
               <div className="flex flex-col items-center gap-2">

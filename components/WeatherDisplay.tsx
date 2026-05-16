@@ -1,5 +1,6 @@
 import { getWeatherMood } from "@/lib/weather";
 import type { ReactNode } from "react";
+import { ShareCardButton } from "./ShareCardButton";
 import type { City } from "@/types/weather";
 
 type WeatherDisplayProps = {
@@ -30,6 +31,7 @@ export function WeatherDisplay({ children, city, weatherCode }: WeatherDisplayPr
           {mood.aside}
         </p>
       </div>
+      <ShareCardButton cityName={city.name} mood={mood} />
       {children}
     </section>
   );

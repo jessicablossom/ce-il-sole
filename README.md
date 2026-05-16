@@ -14,6 +14,8 @@ L'app permette di scegliere una città, leggere un verdetto essenziale (`Sì.`, 
 
 Il tono è minimale, asciutto, un po' passivo-aggressivo.
 
+Durante il giorno è possibile salvare una card verticale per Instagram Story con città, icona meteo e frase del giorno.
+
 ### Tech Stack
 
 - Next.js 16 con App Router
@@ -84,7 +86,6 @@ types/
 
 ### Possibili estensioni
 
-- Share card generabile per condividere il verdetto.
 - Microcopy più specifica per nebbia, neve, pioggia e temporali.
 - Timeout e fallback più granulari per Open-Meteo.
 - Cache server-side più intelligente per ridurre chiamate ripetute.
@@ -101,6 +102,8 @@ types/
 The app lets users choose an Italian city, read a minimal verdict (`Sì.`, `No.`, `Purtroppo no.`), get a dry ironic aside, and see deliberately dramatic yearly stats, such as how many sunny days the city has had this year and the last truly happy day.
 
 The tone is editorial, minimal, slightly passive-aggressive, and shaped by northern Italian weather frustration. Southern sunny cities get a more openly envious treatment.
+
+During daytime, users can save a vertical Instagram Story card with the city, weather icon and daily phrase.
 
 ### Tech Stack
 
@@ -172,7 +175,6 @@ types/
 
 ### Possible Extensions
 
-- Shareable verdict card.
 - More condition-specific copy for fog, snow, rain and storms.
 - More granular timeout and fallback handling for Open-Meteo.
 - Smarter server-side caching to reduce repeated calls.

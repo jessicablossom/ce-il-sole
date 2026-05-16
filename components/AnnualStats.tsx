@@ -16,7 +16,7 @@ export function AnnualStats({
   return (
     <section
       aria-label="Statistiche annuali"
-      className="mt-7 flex w-full flex-col items-center gap-5 border-t border-[var(--line)]/5 pt-5 text-center text-[var(--muted)] sm:mt-6 sm:gap-3 sm:pt-4"
+      className="mt-6 flex w-full flex-col items-center gap-5 border-t border-[var(--line)]/5 pt-4 text-center text-[var(--muted)] sm:mt-5 sm:gap-5 sm:pt-4"
     >
       <p className="max-w-md text-base font-medium leading-snug">
         Lo sapevi? {cityName} ha avuto{" "}
