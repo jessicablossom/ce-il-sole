@@ -15,6 +15,7 @@ import { getPreviewWeatherCode, isSunLiePreview } from "@/lib/weatherPreview";
 type HomeProps = {
   searchParams: Promise<{
     city?: string | string[];
+    meteoSegreto?: string | string[];
     preview?: string | string[];
   }>;
 };
@@ -23,8 +24,13 @@ export default async function Home({ searchParams }: HomeProps) {
   const query = await searchParams;
   const selectedCityParam = query.city;
   const previewParam = getSingleQueryParam(query.preview);
-  const previewWeatherCode = getPreviewWeatherCode(previewParam);
-  const isPreview = previewWeatherCode !== null;
+  const secretPreviewParam = getSingleQueryParam(query.meteoSegreto);
+  const publicPreviewWeatherCode = getPreviewWeatherCode(previewParam);
+  const secretPreviewWeatherCode = getPreviewWeatherCode(secretPreviewParam);
+  const previewWeatherCode = secretPreviewWeatherCode ?? publicPreviewWeatherCode;
+  const isPublicPreview = publicPreviewWeatherCode !== null;
+  const isSecretPreview = secretPreviewWeatherCode !== null;
+  const isPreview = isPublicPreview || isSecretPreview;
   const selectedCityId =
     typeof selectedCityParam === "string" ? selectedCityParam : DEFAULT_CITY_ID;
   const city = getCityById(selectedCityId);
@@ -39,7 +45,8 @@ export default async function Home({ searchParams }: HomeProps) {
   const faviconCondition = getWeatherConditionFromCode(weatherCode);
   const isLying = isSunLiePreview(previewParam);
   const shouldShowLieCta =
-    isLying || (actualWeatherCondition !== "sunny" && actualWeatherCondition !== "unknown");
+    !isSecretPreview &&
+    (isLying || (actualWeatherCondition !== "sunny" && actualWeatherCondition !== "unknown"));
 
   return (
     <Layout weatherCondition={weatherCondition}>
@@ -84,7 +91,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <>
             <WeatherDisplay
               city={city}
-              showShareCard={!isPreview}
+              showShareCard={!isPublicPreview}
               weatherCode={weatherCode}
             >
               {weatherReport && !isPreview ? (
