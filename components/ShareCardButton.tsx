@@ -35,65 +35,30 @@ type ShareCardButtonProps = {
 export function ShareCardButton({ cityName, mood }: ShareCardButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  function handleDownload() {
+  async function handleShare() {
     setIsGenerating(true);
 
     try {
-      const canvas = document.createElement("canvas");
-      canvas.width = STORY_WIDTH;
-      canvas.height = STORY_HEIGHT;
+      const fileName = `ce-il-sole-${slugify(cityName)}.png`;
+      const canvas = createShareCardCanvas({ cityName, mood });
+      const file = await canvasToPngFile(canvas, fileName);
 
-      const context = canvas.getContext("2d");
-
-      if (!context) {
-        return;
+      if (canShareFile(file)) {
+        try {
+          await navigator.share({
+            files: [file],
+            text: `${cityName}: ${mood.aside}`,
+            title: APP_SIGNATURE,
+          });
+          return;
+        } catch (error) {
+          if (isAbortError(error)) {
+            return;
+          }
+        }
       }
 
-      const palette = getSharePalette(mood.condition);
-
-      drawGradientBackground(context, palette);
-      drawSoftOrb(context, palette.orb, 820, 252, 620);
-      drawSoftOrb(context, palette.accent, 108, 1450, 520);
-      drawGlassCard(context, palette);
-
-      context.fillStyle = palette.foreground;
-      context.textAlign = "center";
-      context.textBaseline = "top";
-
-      context.font = '600 34px "IBM Plex Sans", Arial, sans-serif';
-      context.letterSpacing = "8px";
-      context.fillText(cityName.toUpperCase(), STORY_WIDTH / 2, GLASS_CARD.y + 86);
-
-      context.font = '400 292px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-      context.letterSpacing = "0px";
-      context.fillText(mood.icon, STORY_WIDTH / 2, GLASS_CARD.y + 246);
-
-      context.font = '500 78px "Bodoni Moda", Georgia, serif';
-      drawWrappedText({
-        context,
-        lineHeight: 96,
-        maxWidth: GLASS_CARD.width - 176,
-        text: mood.aside,
-        x: STORY_WIDTH / 2,
-        y: GLASS_CARD.y + 650,
-      });
-
-      context.fillStyle = palette.accent;
-      context.font = '600 36px "IBM Plex Sans", Arial, sans-serif';
-      context.letterSpacing = "0px";
-      context.fillText(mood.answer, STORY_WIDTH / 2, GLASS_CARD.y + 1080);
-
-      context.fillStyle = palette.foreground;
-      context.font = '600 30px "IBM Plex Sans", Arial, sans-serif';
-      context.letterSpacing = "6px";
-      context.fillText(APP_SIGNATURE.toUpperCase(), STORY_WIDTH / 2, STORY_HEIGHT - 210);
-
-      context.fillStyle = palette.muted;
-      context.font = '500 28px "IBM Plex Sans", Arial, sans-serif';
-      context.letterSpacing = "0px";
-      context.fillText("la previsione più inutile d'Italia", STORY_WIDTH / 2, STORY_HEIGHT - 152);
-
-      downloadCanvas(canvas, `ce-il-sole-${slugify(cityName)}.png`);
+      downloadCanvas(canvas, fileName);
     } finally {
       setIsGenerating(false);
     }
@@ -103,12 +68,73 @@ export function ShareCardButton({ cityName, mood }: ShareCardButtonProps) {
     <button
       className="mt-6 border-b border-[var(--line)]/35 pb-1 text-xs font-semibold uppercase tracking-widest text-[var(--foreground)] transition hover:border-[var(--line)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--line)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-wait disabled:opacity-60"
       disabled={isGenerating}
-      onClick={handleDownload}
+      onClick={handleShare}
       type="button"
     >
-      {isGenerating ? "Preparazione card..." : "Salva card IG"}
+      {isGenerating ? "Preparazione card..." : "Condividi card IG"}
     </button>
   );
+}
+
+function createShareCardCanvas({
+  cityName,
+  mood,
+}: ShareCardButtonProps): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = STORY_WIDTH;
+  canvas.height = STORY_HEIGHT;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas context unavailable");
+  }
+
+  const palette = getSharePalette(mood.condition);
+
+  drawGradientBackground(context, palette);
+  drawSoftOrb(context, palette.orb, 820, 252, 620);
+  drawSoftOrb(context, palette.accent, 108, 1450, 520);
+  drawGlassCard(context, palette);
+
+  context.fillStyle = palette.foreground;
+  context.textAlign = "center";
+  context.textBaseline = "top";
+
+  context.font = '600 34px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "8px";
+  context.fillText(cityName.toUpperCase(), STORY_WIDTH / 2, GLASS_CARD.y + 86);
+
+  context.font = '400 292px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText(mood.icon, STORY_WIDTH / 2, GLASS_CARD.y + 246);
+
+  context.font = '500 78px "Bodoni Moda", Georgia, serif';
+  drawWrappedText({
+    context,
+    lineHeight: 96,
+    maxWidth: GLASS_CARD.width - 176,
+    text: mood.aside,
+    x: STORY_WIDTH / 2,
+    y: GLASS_CARD.y + 650,
+  });
+
+  context.fillStyle = palette.accent;
+  context.font = '600 36px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText(mood.answer, STORY_WIDTH / 2, GLASS_CARD.y + 1080);
+
+  context.fillStyle = palette.foreground;
+  context.font = '600 30px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "6px";
+  context.fillText(APP_SIGNATURE.toUpperCase(), STORY_WIDTH / 2, STORY_HEIGHT - 210);
+
+  context.fillStyle = palette.muted;
+  context.font = '500 28px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText("la previsione più inutile d'Italia", STORY_WIDTH / 2, STORY_HEIGHT - 152);
+
+  return canvas;
 }
 
 function getSharePalette(condition: WeatherMood["condition"]): SharePalette {
@@ -314,6 +340,31 @@ function downloadCanvas(canvas: HTMLCanvasElement, fileName: string) {
   link.download = fileName;
   link.href = canvas.toDataURL("image/png");
   link.click();
+}
+
+function canvasToPngFile(canvas: HTMLCanvasElement, fileName: string): Promise<File> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Unable to create share card image"));
+        return;
+      }
+
+      resolve(new File([blob], fileName, { type: "image/png" }));
+    }, "image/png");
+  });
+}
+
+function canShareFile(file: File): boolean {
+  return (
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] })
+  );
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function slugify(value: string): string {
