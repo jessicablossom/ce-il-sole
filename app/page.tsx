@@ -38,7 +38,8 @@ export default async function Home({ searchParams }: HomeProps) {
   const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
   const faviconCondition = getWeatherConditionFromCode(weatherCode);
   const isLying = isSunLiePreview(previewParam);
-  const shouldShowLieCta = isLying || actualWeatherCondition === "cloudy";
+  const shouldShowLieCta =
+    isLying || (actualWeatherCondition !== "sunny" && actualWeatherCondition !== "unknown");
 
   return (
     <Layout weatherCondition={weatherCondition}>
