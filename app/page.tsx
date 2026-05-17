@@ -5,6 +5,7 @@ import { LieCta } from "@/components/LieCta";
 import { NightDisplay } from "@/components/NightDisplay";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { WeatherFavicon } from "@/components/WeatherFavicon";
+import { SiteFooter } from "@/components/SiteFooter";
 import { WeatherUnavailable } from "@/components/WeatherUnavailable";
 import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
@@ -21,7 +22,32 @@ type HomeProps = {
   }>;
 };
 
-export default async function Home({ searchParams }: HomeProps) {
+const getSingleQueryParam = (param: string | string[] | undefined): string | null => {
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param?.[0] ?? null;
+};
+
+const getReportOrNull = async (
+  city: Parameters<typeof getWeatherReport>[0],
+  today: Date,
+) => {
+  try {
+    return await getWeatherReport(city, today);
+  } catch (error) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("Weather report unavailable");
+    } else {
+      console.error("Weather report unavailable", error);
+    }
+
+    return null;
+  }
+};
+
+export const Home = async ({ searchParams }: HomeProps) => {
   const query = await searchParams;
   const selectedCityParam = query.city;
   const previewParam = getSingleQueryParam(query.preview);
@@ -84,7 +110,7 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col px-0 pt-7 lg:px-[20%] lg:pt-9">
+      <div className="flex min-h-0 flex-1 flex-col gap-8 px-0 pt-7 sm:gap-10 lg:px-[20%] lg:pt-9">
         <CitySelector key={city.id} cities={CITIES} selectedCityId={city.id} />
 
         {isNight ? (
@@ -124,31 +150,9 @@ export default async function Home({ searchParams }: HomeProps) {
         )}
       </div>
       {shouldShowLieCta ? <LieCta isLying={isLying} selectedCityId={city.id} /> : null}
+      <SiteFooter />
     </Layout>
   );
-}
+};
 
-async function getReportOrNull(
-  city: Parameters<typeof getWeatherReport>[0],
-  today: Date,
-) {
-  try {
-    return await getWeatherReport(city, today);
-  } catch (error) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("Weather report unavailable");
-    } else {
-      console.error("Weather report unavailable", error);
-    }
-
-    return null;
-  }
-}
-
-function getSingleQueryParam(param: string | string[] | undefined): string | null {
-  if (typeof param === "string") {
-    return param;
-  }
-
-  return param?.[0] ?? null;
-}
+export default Home;

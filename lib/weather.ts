@@ -27,45 +27,66 @@ type OpenMeteoDailyEnvelope = {
   };
 };
 
-export async function getWeatherReport(city: City, now = new Date()): Promise<WeatherReport> {
-  const todayIsoDate = getIsoDateInTimeZone(now, city.timeZone);
-  const yearStartIsoDate = getYearStartIsoDate(todayIsoDate);
-  const archiveEndIsoDate = addDaysToIsoDate(todayIsoDate, -ARCHIVE_DATA_DELAY_DAYS);
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string");
 
-  const [forecast, archiveDays] = await Promise.all([
-    fetchForecastPayload(city, now),
-    archiveEndIsoDate >= yearStartIsoDate
-      ? fetchDailyWeather(buildArchiveUrl(city, yearStartIsoDate, archiveEndIsoDate))
-      : Promise.resolve([]),
-  ]);
+const isNumberArray = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "number");
 
-  const sunnyArchiveDays = archiveDays.filter((day) => isSunnyWeatherCode(day.weatherCode));
+const parseForecastEnvelope = (
+  data: unknown,
+): OpenMeteoDailyEnvelope & { hourly?: unknown } => {
+  if (data === undefined || typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new Error("Unexpected Open‑Meteo forecast payload");
+  }
 
-  return {
-    city,
-    currentHour: forecast.currentHour,
-    nextHour: forecast.nextHour,
-    sansSoleBucketsThisYear: tallyArchiveSansSole(archiveDays),
-    today: forecast.today,
-    sunnyDaysThisYear: sunnyArchiveDays.length,
-    lastSunnyDay: sunnyArchiveDays.at(-1)?.date ?? null,
-  };
-}
+  return data as OpenMeteoDailyEnvelope & { hourly?: unknown };
+};
 
-export function getWeatherMood(
-  weatherCode: number | null | undefined,
-  city?: City,
-): WeatherMood {
-  const condition = getWeatherConditionFromCode(weatherCode);
+const buildForecastUrl = (city: City): string => {
+  const url = new URL(FORECAST_ENDPOINT);
+  url.searchParams.set("latitude", String(city.latitude));
+  url.searchParams.set("longitude", String(city.longitude));
+  url.searchParams.set("timezone", city.timeZone);
+  url.searchParams.set("forecast_days", String(FORECAST_DAYS_WINDOW));
+  url.searchParams.set("daily", "weather_code");
+  url.searchParams.set("hourly", "weather_code,is_day");
 
-  return getWeatherMoodCopy({
-    city,
-    condition,
-    weatherCode: weatherCode ?? -1,
-  });
-}
+  return url.toString();
+};
 
-export function parseDailyWeatherResponse(data: OpenMeteoDailyEnvelope): DailyWeather[] {
+const buildArchiveUrl = (city: City, startDate: string, endDate: string): string => {
+  const url = new URL(ARCHIVE_ENDPOINT);
+  url.searchParams.set("latitude", String(city.latitude));
+  url.searchParams.set("longitude", String(city.longitude));
+  url.searchParams.set("start_date", startDate);
+  url.searchParams.set("end_date", endDate);
+  url.searchParams.set("daily", "weather_code");
+  url.searchParams.set("timezone", city.timeZone);
+
+  return url.toString();
+};
+
+type HourlyTripleNonNull = NonNullable<ReturnType<typeof parseOpenMeteoHourlyPayload>>;
+
+const buildHourWeatherSnapshot = (
+  triple: HourlyTripleNonNull,
+  index: number,
+): HourWeatherSnapshot | null => {
+  const time = triple.times[index];
+  const weatherCode = triple.weatherCodes[index];
+  const isDayRaw = triple.isDayFlags[index];
+
+  if (time === undefined || weatherCode === undefined || isDayRaw === undefined) {
+    return null;
+  }
+
+  const isDay: HourWeatherSnapshot["isDay"] = isDayRaw === 1 ? 1 : 0;
+
+  return { isDay, time, weatherCode };
+};
+
+export const parseDailyWeatherResponse = (data: OpenMeteoDailyEnvelope): DailyWeather[] => {
   const times = data.daily?.time;
   const weatherCodes = data.daily?.weather_code;
 
@@ -81,16 +102,29 @@ export function parseDailyWeatherResponse(data: OpenMeteoDailyEnvelope): DailyWe
     date,
     weatherCode: weatherCodes[index] as number,
   }));
-}
+};
 
-async function fetchForecastPayload(
+const fetchDailyWeather = async (url: string): Promise<DailyWeather[]> => {
+  try {
+    const response = await axios.get<OpenMeteoDailyEnvelope>(url);
+    return parseDailyWeatherResponse(response.data);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(`Open-Meteo request failed with status ${error.response.status}`);
+    }
+
+    throw error;
+  }
+};
+
+const fetchForecastPayload = async (
   city: City,
   now: Date,
 ): Promise<{
   currentHour: HourWeatherSnapshot | null;
   nextHour: HourWeatherSnapshot | null;
   today: DailyWeather | null;
-}> {
+}> => {
   let responseBody: unknown;
 
   try {
@@ -126,78 +160,47 @@ async function fetchForecastPayload(
   }
 
   return { currentHour, nextHour, today };
-}
+};
 
-function parseForecastEnvelope(data: unknown): OpenMeteoDailyEnvelope & { hourly?: unknown } {
-  if (data === undefined || typeof data !== "object" || data === null || Array.isArray(data)) {
-    throw new Error("Unexpected Open‑Meteo forecast payload");
-  }
+export const getWeatherReport = async (
+  city: City,
+  now = new Date(),
+): Promise<WeatherReport> => {
+  const todayIsoDate = getIsoDateInTimeZone(now, city.timeZone);
+  const yearStartIsoDate = getYearStartIsoDate(todayIsoDate);
+  const archiveEndIsoDate = addDaysToIsoDate(todayIsoDate, -ARCHIVE_DATA_DELAY_DAYS);
 
-  return data as OpenMeteoDailyEnvelope & { hourly?: unknown };
-}
+  const [forecast, archiveDays] = await Promise.all([
+    fetchForecastPayload(city, now),
+    archiveEndIsoDate >= yearStartIsoDate
+      ? fetchDailyWeather(buildArchiveUrl(city, yearStartIsoDate, archiveEndIsoDate))
+      : Promise.resolve([]),
+  ]);
 
-function buildForecastUrl(city: City): string {
-  const url = new URL(FORECAST_ENDPOINT);
-  url.searchParams.set("latitude", String(city.latitude));
-  url.searchParams.set("longitude", String(city.longitude));
-  url.searchParams.set("timezone", city.timeZone);
-  url.searchParams.set("forecast_days", String(FORECAST_DAYS_WINDOW));
-  url.searchParams.set("daily", "weather_code");
-  url.searchParams.set("hourly", "weather_code,is_day");
+  const sunnyArchiveDays = archiveDays.filter((day) => isSunnyWeatherCode(day.weatherCode));
 
-  return url.toString();
-}
+  return {
+    city,
+    currentHour: forecast.currentHour,
+    nextHour: forecast.nextHour,
+    sansSoleBucketsThisYear: tallyArchiveSansSole(archiveDays),
+    today: forecast.today,
+    sunnyDaysThisYear: sunnyArchiveDays.length,
+    lastSunnyDay: sunnyArchiveDays.at(-1)?.date ?? null,
+  };
+};
 
-function buildArchiveUrl(city: City, startDate: string, endDate: string): string {
-  const url = new URL(ARCHIVE_ENDPOINT);
-  url.searchParams.set("latitude", String(city.latitude));
-  url.searchParams.set("longitude", String(city.longitude));
-  url.searchParams.set("start_date", startDate);
-  url.searchParams.set("end_date", endDate);
-  url.searchParams.set("daily", "weather_code");
-  url.searchParams.set("timezone", city.timeZone);
+export const getWeatherMood = (
+  weatherCode: number | null | undefined,
+  city?: City,
+): WeatherMood => {
+  const condition = getWeatherConditionFromCode(weatherCode);
 
-  return url.toString();
-}
-
-type HourlyTripleNonNull = NonNullable<ReturnType<typeof parseOpenMeteoHourlyPayload>>;
-
-function buildHourWeatherSnapshot(
-  triple: HourlyTripleNonNull,
-  index: number,
-): HourWeatherSnapshot | null {
-  const time = triple.times[index];
-  const weatherCode = triple.weatherCodes[index];
-  const isDayRaw = triple.isDayFlags[index];
-
-  if (time === undefined || weatherCode === undefined || isDayRaw === undefined) {
-    return null;
-  }
-
-  const isDay: HourWeatherSnapshot["isDay"] = isDayRaw === 1 ? 1 : 0;
-
-  return { isDay, time, weatherCode };
-}
-
-async function fetchDailyWeather(url: string): Promise<DailyWeather[]> {
-  try {
-    const response = await axios.get<OpenMeteoDailyEnvelope>(url);
-    return parseDailyWeatherResponse(response.data);
-  } catch (error) {
-    if (isAxiosError(error) && error.response) {
-      throw new Error(`Open-Meteo request failed with status ${error.response.status}`);
-    }
-
-    throw error;
-  }
-}
-
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-function isNumberArray(value: unknown): value is number[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "number");
-}
+  return getWeatherMoodCopy({
+    city,
+    condition,
+    weatherCode: weatherCode ?? -1,
+  });
+};
 
 export { getWeatherConditionFromCode, isSunnyWeatherCode };

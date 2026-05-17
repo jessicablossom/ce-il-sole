@@ -60,32 +60,32 @@ const WEATHER_CONDITION_BY_CODE = new Map<number, WeatherCondition>(
   ),
 );
 
-export function getWeatherConditionFromCode(
+export const getWeatherConditionFromCode = (
   weatherCode: number | null | undefined,
-): WeatherCondition {
+): WeatherCondition => {
   if (weatherCode === undefined || weatherCode === null) {
     return "unknown";
   }
 
   return WEATHER_CONDITION_BY_CODE.get(weatherCode) ?? "cloudy";
-}
+};
 
-export function isSunnyWeatherCode(weatherCode: number): boolean {
-  return getWeatherConditionFromCode(weatherCode) === "sunny";
-}
+export const isSunnyWeatherCode = (weatherCode: number): boolean =>
+  getWeatherConditionFromCode(weatherCode) === "sunny";
 
-export function getWeatherCodeDescription(weatherCode: number | null | undefined): string {
+export const getWeatherCodeDescription = (
+  weatherCode: number | null | undefined,
+): string => {
   if (weatherCode === undefined || weatherCode === null) {
     return "No weather code";
   }
 
   return WEATHER_CODE_DESCRIPTIONS[weatherCode] ?? "Unknown WMO weather code";
-}
+};
 
-export function isNegativeWeatherCondition(
+export const isNegativeWeatherCondition = (
   condition: WeatherCondition,
-): condition is (typeof NEGATIVE_WEATHER_CONDITIONS)[number] {
-  return NEGATIVE_WEATHER_CONDITIONS.includes(
+): condition is (typeof NEGATIVE_WEATHER_CONDITIONS)[number] =>
+  NEGATIVE_WEATHER_CONDITIONS.includes(
     condition as (typeof NEGATIVE_WEATHER_CONDITIONS)[number],
   );
-}

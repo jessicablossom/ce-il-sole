@@ -3,7 +3,13 @@
  * with the application's "now".
  */
 
-export function getOpenMeteoLocalHourFloorIso(now: Date, timeZone: string): string {
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string");
+
+const isNumberArray = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "number");
+
+export const getOpenMeteoLocalHourFloorIso = (now: Date, timeZone: string): string => {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     hour: "2-digit",
@@ -32,22 +38,12 @@ export function getOpenMeteoLocalHourFloorIso(now: Date, timeZone: string): stri
   const hour = rawHour.padStart(2, "0");
 
   return `${year}-${month}-${day}T${hour}:00`;
-}
+};
 
-export function resolveCurrentHourlyIndex(
-  hourlyTimes: readonly string[],
-  now: Date,
-  timeZone: string,
-): number | null {
-  const floorHourIsoLocal = getOpenMeteoLocalHourFloorIso(now, timeZone);
-
-  return findHourlySeriesIndex(hourlyTimes, floorHourIsoLocal);
-}
-
-export function findHourlySeriesIndex(
+export const findHourlySeriesIndex = (
   hourlyTimes: readonly string[],
   floorHourIsoLocal: string,
-): number | null {
+): number | null => {
   if (hourlyTimes.length === 0) {
     return null;
   }
@@ -77,7 +73,17 @@ export function findHourlySeriesIndex(
   }
 
   return 0;
-}
+};
+
+export const resolveCurrentHourlyIndex = (
+  hourlyTimes: readonly string[],
+  now: Date,
+  timeZone: string,
+): number | null => {
+  const floorHourIsoLocal = getOpenMeteoLocalHourFloorIso(now, timeZone);
+
+  return findHourlySeriesIndex(hourlyTimes, floorHourIsoLocal);
+};
 
 type HourlyTriple = {
   isDayFlags: number[];
@@ -85,7 +91,7 @@ type HourlyTriple = {
   weatherCodes: number[];
 };
 
-export function parseOpenMeteoHourlyPayload(hourly: unknown): HourlyTriple | null {
+export const parseOpenMeteoHourlyPayload = (hourly: unknown): HourlyTriple | null => {
   if (
     hourly === undefined ||
     typeof hourly !== "object" ||
@@ -113,12 +119,4 @@ export function parseOpenMeteoHourlyPayload(hourly: unknown): HourlyTriple | nul
     times: timesRaw,
     weatherCodes: weatherCodesRaw,
   };
-}
-
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-function isNumberArray(value: unknown): value is number[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "number");
-}
+};

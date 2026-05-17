@@ -813,6 +813,5 @@ export const DEFAULT_CITY_ID = "bologna";
 
 export type CityId = (typeof CITIES)[number]["id"];
 
-export function getCityById(cityId: string | undefined): City {
-  return CITIES.find((city) => city.id === cityId) ?? CITIES[0];
-}
+export const getCityById = (cityId: string | undefined): City =>
+  CITIES.find((city) => city.id === cityId) ?? CITIES[0];

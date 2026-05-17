@@ -12,6 +12,5 @@ const WEATHER_ICONS = {
   unknown: "☁️",
 } as const satisfies Record<WeatherCondition, WeatherMood["icon"]>;
 
-export function getWeatherIconForCondition(condition: WeatherCondition): WeatherMood["icon"] {
-  return WEATHER_ICONS[condition];
-}
+export const getWeatherIconForCondition = (condition: WeatherCondition): WeatherMood["icon"] =>
+  WEATHER_ICONS[condition];

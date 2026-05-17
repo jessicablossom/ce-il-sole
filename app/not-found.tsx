@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Layout } from "@/components/Layout";
 
-export default function NotFound() {
+export const NotFound = () => {
   return (
     <Layout weatherCondition="cloudy">
       <section className="flex min-h-0 flex-1 flex-col items-center justify-center px-0 text-center lg:px-[20%]">
@@ -24,4 +24,6 @@ export default function NotFound() {
       </section>
     </Layout>
   );
-}
+};
+
+export default NotFound;

@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { filterCitiesByQuery, getNextActiveCityId, normalizeCityName } from "../lib/citySearch";
 import type { City } from "../types/weather";
 
+const createCity = (id: string, name: string): City => ({
+  id,
+  latitude: 0,
+  longitude: 0,
+  name,
+  timeZone: "Europe/Rome",
+});
+
 const cities = [
   createCity("forli", "Forlì"),
   createCity("firenze", "Firenze"),
@@ -32,13 +40,3 @@ describe("city search utilities", () => {
     );
   });
 });
-
-function createCity(id: string, name: string): City {
-  return {
-    id,
-    latitude: 0,
-    longitude: 0,
-    name,
-    timeZone: "Europe/Rome",
-  };
-}

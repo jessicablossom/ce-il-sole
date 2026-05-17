@@ -10,13 +10,13 @@ type AnnualStatsProps = {
   timeZone: string;
 };
 
-export function AnnualStats({
+export const AnnualStats = ({
   cityName,
   lastSunnyDay,
   sunnyDaysThisYear,
   sansSoleBucketsThisYear,
   timeZone,
-}: AnnualStatsProps) {
+}: AnnualStatsProps) => {
   const sansSum = totalSansSoleDays(sansSoleBucketsThisYear);
 
   const sansRows = SAN_SOLE_ROWS.flatMap(({ key, tableLabel }) => {
@@ -92,7 +92,7 @@ export function AnnualStats({
       </div>
     </section>
   );
-}
+};
 
 const SAN_SOLE_ROWS = [
   { key: "partlyCloudy", tableLabel: "Parzialmente nuvoloso" },

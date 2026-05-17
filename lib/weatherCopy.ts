@@ -45,7 +45,16 @@ const CLOUDY_ASIDES = [
   "Servizio solare temporaneamente non incluso.",
 ] as const;
 
-export function getWeatherMoodCopy({
+const pickAside = (asides: readonly string[], weatherCode: number, city?: City): string => {
+  const seed = `${city?.id ?? "italia"}-${weatherCode}`;
+  const index =
+    Array.from(seed).reduce((total, character) => total + character.charCodeAt(0), 0) %
+    asides.length;
+
+  return asides[index];
+};
+
+export const getWeatherMoodCopy = ({
   city,
   condition,
   weatherCode,
@@ -53,7 +62,7 @@ export function getWeatherMoodCopy({
   city?: City;
   condition: WeatherCondition;
   weatherCode: number;
-}): WeatherMood {
+}): WeatherMood => {
   if (condition === "unknown") {
     return {
       condition,
@@ -98,13 +107,4 @@ export function getWeatherMoodCopy({
     answer: "No.",
     aside: pickAside(CLOUDY_ASIDES, weatherCode, city),
   };
-}
-
-function pickAside(asides: readonly string[], weatherCode: number, city?: City): string {
-  const seed = `${city?.id ?? "italia"}-${weatherCode}`;
-  const index =
-    Array.from(seed).reduce((total, character) => total + character.charCodeAt(0), 0) %
-    asides.length;
-
-  return asides[index];
-}
+};

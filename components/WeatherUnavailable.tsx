@@ -1,4 +1,4 @@
-export function WeatherUnavailable() {
+export const WeatherUnavailable = () => {
   return (
     <section className="flex min-h-0 flex-1 flex-col items-center justify-center py-6 text-center sm:py-8">
       <p className="ui-meta-label mb-5 text-xs font-semibold uppercase leading-none tracking-widest">
@@ -12,4 +12,4 @@ export function WeatherUnavailable() {
       </p>
     </section>
   );
-}
+};

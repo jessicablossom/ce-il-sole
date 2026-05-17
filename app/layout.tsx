@@ -20,11 +20,11 @@ export const metadata: Metadata = {
   description: "La previsione più inutile d’Italia.",
 };
 
-export default function RootLayout({
+export const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>) => {
   return (
     <html
       lang="it"
@@ -33,4 +33,6 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
-}
+};
+
+export default RootLayout;

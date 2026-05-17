@@ -11,19 +11,32 @@ const ISO_DATE_PARTS_FORMATTER_OPTIONS: Intl.DateTimeFormatOptions = {
   year: "numeric",
 };
 
-export function formatItalianDate(
-  date: Date | string,
-  timeZone = "Europe/Rome",
-): string {
+const dateFromIsoDate = (isoDate: string): Date => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day, 12));
+};
+
+const getDatePart = (parts: Intl.DateTimeFormatPart[], type: string): string => {
+  const part = parts.find((value) => value.type === type);
+
+  if (!part) {
+    throw new Error(`Missing ${type} date part`);
+  }
+
+  return part.value;
+};
+
+export const formatItalianDate = (date: Date | string, timeZone = "Europe/Rome"): string => {
   const value = typeof date === "string" ? dateFromIsoDate(date) : date;
 
   return new Intl.DateTimeFormat("it-IT", {
     ...ITALIAN_DATE_FORMATTER_OPTIONS,
     timeZone,
   }).format(value);
-}
+};
 
-export function getIsoDateInTimeZone(date: Date, timeZone = "Europe/Rome"): string {
+export const getIsoDateInTimeZone = (date: Date, timeZone = "Europe/Rome"): string => {
   const parts = new Intl.DateTimeFormat("en-GB", {
     ...ISO_DATE_PARTS_FORMATTER_OPTIONS,
     timeZone,
@@ -34,31 +47,13 @@ export function getIsoDateInTimeZone(date: Date, timeZone = "Europe/Rome"): stri
   const year = getDatePart(parts, "year");
 
   return `${year}-${month}-${day}`;
-}
+};
 
-export function getYearStartIsoDate(isoDate: string): string {
-  return `${isoDate.slice(0, 4)}-01-01`;
-}
+export const getYearStartIsoDate = (isoDate: string): string => `${isoDate.slice(0, 4)}-01-01`;
 
-export function addDaysToIsoDate(isoDate: string, days: number): string {
+export const addDaysToIsoDate = (isoDate: string, days: number): string => {
   const date = dateFromIsoDate(isoDate);
   date.setUTCDate(date.getUTCDate() + days);
 
   return date.toISOString().slice(0, 10);
-}
-
-function getDatePart(parts: Intl.DateTimeFormatPart[], type: string): string {
-  const part = parts.find((value) => value.type === type);
-
-  if (!part) {
-    throw new Error(`Missing ${type} date part`);
-  }
-
-  return part.value;
-}
-
-function dateFromIsoDate(isoDate: string): Date {
-  const [year, month, day] = isoDate.split("-").map(Number);
-
-  return new Date(Date.UTC(year, month - 1, day, 12));
-}
+};

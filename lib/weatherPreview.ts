@@ -11,14 +11,11 @@ const PREVIEW_WEATHER_CODES = {
 
 type PreviewWeatherName = keyof typeof PREVIEW_WEATHER_CODES;
 
-export function getPreviewWeatherCode(previewParam: string | null): number | null {
-  return isPreviewWeatherName(previewParam) ? PREVIEW_WEATHER_CODES[previewParam] : null;
-}
+const isPreviewWeatherName = (value: string | null): value is PreviewWeatherName =>
+  value !== null && value in PREVIEW_WEATHER_CODES;
 
-export function isSunLiePreview(previewParam: string | null): boolean {
-  return previewParam === "sole";
-}
+export const getPreviewWeatherCode = (previewParam: string | null): number | null =>
+  isPreviewWeatherName(previewParam) ? PREVIEW_WEATHER_CODES[previewParam] : null;
 
-function isPreviewWeatherName(value: string | null): value is PreviewWeatherName {
-  return value !== null && value in PREVIEW_WEATHER_CODES;
-}
+export const isSunLiePreview = (previewParam: string | null): boolean =>
+  previewParam === "sole";

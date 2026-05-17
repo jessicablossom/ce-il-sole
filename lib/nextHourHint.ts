@@ -4,14 +4,13 @@ import {
   isNegativeWeatherCondition,
 } from "./weatherCodes";
 
-function isBrightSky(condition: WeatherCondition): boolean {
-  return condition === "sunny" || condition === "partly-cloudy";
-}
+const isBrightSky = (condition: WeatherCondition): boolean =>
+  condition === "sunny" || condition === "partly-cloudy";
 
 /**
  * One-line ironic note when the outlook for the following hour differs.
  */
-export function getNextHourOutlookNote(currentCode: number, nextCode: number): string | null {
+export const getNextHourOutlookNote = (currentCode: number, nextCode: number): string | null => {
   if (!Number.isFinite(currentCode) || !Number.isFinite(nextCode)) {
     return null;
   }
@@ -44,4 +43,4 @@ export function getNextHourOutlookNote(currentCode: number, nextCode: number): s
   }
 
   return "Tra un’ora si aggiornano le previsioni. E l’umorismo.";
-}
+};

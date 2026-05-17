@@ -6,7 +6,7 @@ type NightDisplayProps = {
   weatherCode: number | null;
 };
 
-export function NightDisplay({ city, weatherCode }: NightDisplayProps) {
+export const NightDisplay = ({ city, weatherCode }: NightDisplayProps) => {
   const dayMood = getWeatherMood(weatherCode, city);
 
   return (
@@ -43,4 +43,4 @@ export function NightDisplay({ city, weatherCode }: NightDisplayProps) {
       </div>
     </section>
   );
-}
+};

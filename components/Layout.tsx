@@ -19,7 +19,7 @@ type LayoutProps = {
   weatherCondition?: WeatherCondition;
 };
 
-export function Layout({ children, weatherCondition = "cloudy" }: LayoutProps) {
+export const Layout = ({ children, weatherCondition = "cloudy" }: LayoutProps) => {
   return (
     <main
       className={[
@@ -32,4 +32,4 @@ export function Layout({ children, weatherCondition = "cloudy" }: LayoutProps) {
       </div>
     </main>
   );
-}
+};

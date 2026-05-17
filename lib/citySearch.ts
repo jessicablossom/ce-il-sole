@@ -1,6 +1,15 @@
 import type { City } from "@/types/weather";
 
-export function filterCitiesByQuery(cities: readonly City[], query: string): readonly City[] {
+export const normalizeCityName = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+export const filterCitiesByQuery = (
+  cities: readonly City[],
+  query: string,
+): readonly City[] => {
   const normalizedQuery = normalizeCityName(query.trim());
 
   if (normalizedQuery.length === 0) {
@@ -8,9 +17,9 @@ export function filterCitiesByQuery(cities: readonly City[], query: string): rea
   }
 
   return cities.filter((city) => normalizeCityName(city.name).startsWith(normalizedQuery));
-}
+};
 
-export function getNextActiveCityId({
+export const getNextActiveCityId = ({
   activeCityId,
   cities,
   direction,
@@ -18,7 +27,7 @@ export function getNextActiveCityId({
   activeCityId: string | null;
   cities: readonly City[];
   direction: "next" | "previous";
-}): string | null {
+}): string | null => {
   if (cities.length === 0) {
     return null;
   }
@@ -33,11 +42,4 @@ export function getNextActiveCityId({
   const nextIndex = (currentIndex + offset + cities.length) % cities.length;
 
   return cities[nextIndex].id;
-}
-
-export function normalizeCityName(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
+};

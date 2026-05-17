@@ -5,7 +5,6 @@ import type { WeatherMood } from "@/types/weather";
 
 const STORY_WIDTH = 1080;
 const STORY_HEIGHT = 1920;
-const STORY_PADDING = 92;
 const APP_SIGNATURE = "C'è il sole?";
 const GLASS_CARD = {
   x: 74,
@@ -32,112 +31,145 @@ type ShareCardButtonProps = {
   mood: WeatherMood;
 };
 
-export function ShareCardButton({ cityName, mood }: ShareCardButtonProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+const slugify = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
-  async function handleShare() {
-    setIsGenerating(true);
+const isAbortError = (error: unknown): boolean =>
+  error instanceof DOMException && error.name === "AbortError";
 
-    try {
-      const fileName = `ce-il-sole-${slugify(cityName)}.png`;
-      const canvas = createShareCardCanvas({ cityName, mood });
-      const file = await canvasToPngFile(canvas, fileName);
+const canShareFile = (file: File): boolean =>
+  typeof navigator.share === "function" &&
+  typeof navigator.canShare === "function" &&
+  navigator.canShare({ files: [file] });
 
-      if (canShareFile(file)) {
-        try {
-          await navigator.share({
-            files: [file],
-            text: `${cityName}: ${mood.aside}`,
-            title: APP_SIGNATURE,
-          });
-          return;
-        } catch (error) {
-          if (isAbortError(error)) {
-            return;
-          }
-        }
+const canvasToPngFile = (canvas: HTMLCanvasElement, fileName: string): Promise<File> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Unable to create share card image"));
+        return;
       }
 
-      downloadCanvas(canvas, fileName);
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  return (
-    <button
-      className="mt-6 border-b border-[var(--line)]/35 pb-1 text-xs font-semibold uppercase tracking-widest text-[var(--foreground)] transition hover:border-[var(--line)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--line)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-wait disabled:opacity-60"
-      disabled={isGenerating}
-      onClick={handleShare}
-      type="button"
-    >
-      {isGenerating ? "Preparazione card..." : "Condividi card IG"}
-    </button>
-  );
-}
-
-function createShareCardCanvas({
-  cityName,
-  mood,
-}: ShareCardButtonProps): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = STORY_WIDTH;
-  canvas.height = STORY_HEIGHT;
-
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Canvas context unavailable");
-  }
-
-  const palette = getSharePalette(mood.condition);
-
-  drawGradientBackground(context, palette);
-  drawSoftOrb(context, palette.orb, 820, 252, 620);
-  drawSoftOrb(context, palette.accent, 108, 1450, 520);
-  drawGlassCard(context, palette);
-
-  context.fillStyle = palette.foreground;
-  context.textAlign = "center";
-  context.textBaseline = "top";
-
-  context.font = '600 34px "IBM Plex Sans", Arial, sans-serif';
-  context.letterSpacing = "8px";
-  context.fillText(cityName.toUpperCase(), STORY_WIDTH / 2, GLASS_CARD.y + 86);
-
-  context.font = '400 292px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-  context.letterSpacing = "0px";
-  context.fillText(mood.icon, STORY_WIDTH / 2, GLASS_CARD.y + 246);
-
-  context.font = '500 78px "Bodoni Moda", Georgia, serif';
-  drawWrappedText({
-    context,
-    lineHeight: 96,
-    maxWidth: GLASS_CARD.width - 176,
-    text: mood.aside,
-    x: STORY_WIDTH / 2,
-    y: GLASS_CARD.y + 650,
+      resolve(new File([blob], fileName, { type: "image/png" }));
+    }, "image/png");
   });
 
-  context.fillStyle = palette.accent;
-  context.font = '600 36px "IBM Plex Sans", Arial, sans-serif';
-  context.letterSpacing = "0px";
-  context.fillText(mood.answer, STORY_WIDTH / 2, GLASS_CARD.y + 1080);
+const downloadCanvas = (canvas: HTMLCanvasElement, fileName: string): void => {
+  const link = document.createElement("a");
+  link.download = fileName;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
 
-  context.fillStyle = palette.foreground;
-  context.font = '600 30px "IBM Plex Sans", Arial, sans-serif';
-  context.letterSpacing = "6px";
-  context.fillText(APP_SIGNATURE.toUpperCase(), STORY_WIDTH / 2, STORY_HEIGHT - 210);
+const drawRoundedRect = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void => {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+};
 
-  context.fillStyle = palette.muted;
-  context.font = '500 28px "IBM Plex Sans", Arial, sans-serif';
-  context.letterSpacing = "0px";
-  context.fillText("la previsione più inutile d'Italia", STORY_WIDTH / 2, STORY_HEIGHT - 152);
+const drawWrappedText = ({
+  context,
+  lineHeight,
+  maxWidth,
+  text,
+  x,
+  y,
+}: {
+  context: CanvasRenderingContext2D;
+  lineHeight: number;
+  maxWidth: number;
+  text: string;
+  x: number;
+  y: number;
+}): void => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
 
-  return canvas;
-}
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
 
-function getSharePalette(condition: WeatherMood["condition"]): SharePalette {
+    if (context.measureText(nextLine).width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+      return;
+    }
+
+    currentLine = nextLine;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * lineHeight);
+  });
+};
+
+const drawGradientBackground = (context: CanvasRenderingContext2D, palette: SharePalette): void => {
+  const gradient = context.createLinearGradient(0, 0, STORY_WIDTH, STORY_HEIGHT);
+  gradient.addColorStop(0, palette.backgroundStart);
+  gradient.addColorStop(1, palette.backgroundEnd);
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, STORY_WIDTH, STORY_HEIGHT);
+};
+
+const drawSoftOrb = (
+  context: CanvasRenderingContext2D,
+  color: string,
+  x: number,
+  y: number,
+  radius: number,
+): void => {
+  const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.arc(x, y, radius, 0, Math.PI * 2);
+  context.fill();
+};
+
+const drawGlassCard = (context: CanvasRenderingContext2D, palette: SharePalette): void => {
+  context.save();
+  context.shadowColor = palette.shadow;
+  context.shadowBlur = 64;
+  context.shadowOffsetY = 38;
+  drawRoundedRect(context, GLASS_CARD.x, GLASS_CARD.y, GLASS_CARD.width, GLASS_CARD.height, GLASS_CARD.radius);
+  context.fillStyle = palette.glassFill;
+  context.fill();
+  context.restore();
+
+  drawRoundedRect(context, GLASS_CARD.x, GLASS_CARD.y, GLASS_CARD.width, GLASS_CARD.height, GLASS_CARD.radius);
+  context.strokeStyle = palette.glassStroke;
+  context.lineWidth = 3;
+  context.stroke();
+};
+
+const getSharePalette = (condition: WeatherMood["condition"]): SharePalette => {
   const palettes = {
     cloudy: {
       accent: "#3f5666",
@@ -241,148 +273,109 @@ function getSharePalette(condition: WeatherMood["condition"]): SharePalette {
   } as const satisfies Record<WeatherMood["condition"], SharePalette>;
 
   return palettes[condition];
-}
+};
 
-function drawGradientBackground(context: CanvasRenderingContext2D, palette: SharePalette) {
-  const gradient = context.createLinearGradient(0, 0, STORY_WIDTH, STORY_HEIGHT);
-  gradient.addColorStop(0, palette.backgroundStart);
-  gradient.addColorStop(1, palette.backgroundEnd);
+const createShareCardCanvas = ({
+  cityName,
+  mood,
+}: ShareCardButtonProps): HTMLCanvasElement => {
+  const canvas = document.createElement("canvas");
+  canvas.width = STORY_WIDTH;
+  canvas.height = STORY_HEIGHT;
 
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, STORY_WIDTH, STORY_HEIGHT);
-}
+  const context = canvas.getContext("2d");
 
-function drawSoftOrb(
-  context: CanvasRenderingContext2D,
-  color: string,
-  x: number,
-  y: number,
-  radius: number,
-) {
-  const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-  gradient.addColorStop(0, color);
-  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-  context.fillStyle = gradient;
-  context.beginPath();
-  context.arc(x, y, radius, 0, Math.PI * 2);
-  context.fill();
-}
-
-function drawGlassCard(context: CanvasRenderingContext2D, palette: SharePalette) {
-  context.save();
-  context.shadowColor = palette.shadow;
-  context.shadowBlur = 64;
-  context.shadowOffsetY = 38;
-  drawRoundedRect(context, GLASS_CARD.x, GLASS_CARD.y, GLASS_CARD.width, GLASS_CARD.height, GLASS_CARD.radius);
-  context.fillStyle = palette.glassFill;
-  context.fill();
-  context.restore();
-
-  drawRoundedRect(context, GLASS_CARD.x, GLASS_CARD.y, GLASS_CARD.width, GLASS_CARD.height, GLASS_CARD.radius);
-  context.strokeStyle = palette.glassStroke;
-  context.lineWidth = 3;
-  context.stroke();
-}
-
-function drawRoundedRect(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.lineTo(x + width - radius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + radius);
-  context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  context.lineTo(x + radius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - radius);
-  context.lineTo(x, y + radius);
-  context.quadraticCurveTo(x, y, x + radius, y);
-  context.closePath();
-}
-
-function drawWrappedText({
-  context,
-  lineHeight,
-  maxWidth,
-  text,
-  x,
-  y,
-}: {
-  context: CanvasRenderingContext2D;
-  lineHeight: number;
-  maxWidth: number;
-  text: string;
-  x: number;
-  y: number;
-}) {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-
-  words.forEach((word) => {
-    const nextLine = currentLine ? `${currentLine} ${word}` : word;
-
-    if (context.measureText(nextLine).width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-      return;
-    }
-
-    currentLine = nextLine;
-  });
-
-  if (currentLine) {
-    lines.push(currentLine);
+  if (!context) {
+    throw new Error("Canvas context unavailable");
   }
 
-  lines.forEach((line, index) => {
-    context.fillText(line, x, y + index * lineHeight);
+  const palette = getSharePalette(mood.condition);
+
+  drawGradientBackground(context, palette);
+  drawSoftOrb(context, palette.orb, 820, 252, 620);
+  drawSoftOrb(context, palette.accent, 108, 1450, 520);
+  drawGlassCard(context, palette);
+
+  context.fillStyle = palette.foreground;
+  context.textAlign = "center";
+  context.textBaseline = "top";
+
+  context.font = '600 34px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "8px";
+  context.fillText(cityName.toUpperCase(), STORY_WIDTH / 2, GLASS_CARD.y + 86);
+
+  context.font = '400 292px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText(mood.icon, STORY_WIDTH / 2, GLASS_CARD.y + 246);
+
+  context.font = '500 78px "Bodoni Moda", Georgia, serif';
+  drawWrappedText({
+    context,
+    lineHeight: 96,
+    maxWidth: GLASS_CARD.width - 176,
+    text: mood.aside,
+    x: STORY_WIDTH / 2,
+    y: GLASS_CARD.y + 650,
   });
-}
 
-function downloadCanvas(canvas: HTMLCanvasElement, fileName: string) {
-  const link = document.createElement("a");
-  link.download = fileName;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-}
+  context.fillStyle = palette.accent;
+  context.font = '600 36px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText(mood.answer, STORY_WIDTH / 2, GLASS_CARD.y + 1080);
 
-function canvasToPngFile(canvas: HTMLCanvasElement, fileName: string): Promise<File> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("Unable to create share card image"));
-        return;
+  context.fillStyle = palette.foreground;
+  context.font = '600 30px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "6px";
+  context.fillText(APP_SIGNATURE.toUpperCase(), STORY_WIDTH / 2, STORY_HEIGHT - 210);
+
+  context.fillStyle = palette.muted;
+  context.font = '500 28px "IBM Plex Sans", Arial, sans-serif';
+  context.letterSpacing = "0px";
+  context.fillText("la previsione più inutile d'Italia", STORY_WIDTH / 2, STORY_HEIGHT - 152);
+
+  return canvas;
+};
+
+export const ShareCardButton = ({ cityName, mood }: ShareCardButtonProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleShare = async (): Promise<void> => {
+    setIsGenerating(true);
+
+    try {
+      const fileName = `ce-il-sole-${slugify(cityName)}.png`;
+      const canvas = createShareCardCanvas({ cityName, mood });
+      const file = await canvasToPngFile(canvas, fileName);
+
+      if (canShareFile(file)) {
+        try {
+          await navigator.share({
+            files: [file],
+            text: `${cityName}: ${mood.aside}`,
+            title: APP_SIGNATURE,
+          });
+          return;
+        } catch (error) {
+          if (isAbortError(error)) {
+            return;
+          }
+        }
       }
 
-      resolve(new File([blob], fileName, { type: "image/png" }));
-    }, "image/png");
-  });
-}
+      downloadCanvas(canvas, fileName);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
-function canShareFile(file: File): boolean {
   return (
-    typeof navigator.share === "function" &&
-    typeof navigator.canShare === "function" &&
-    navigator.canShare({ files: [file] })
+    <button
+      className="mt-6 border-b border-[var(--line)]/35 pb-1 text-xs font-semibold uppercase tracking-widest text-[var(--foreground)] transition hover:border-[var(--line)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--line)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-wait disabled:opacity-60"
+      disabled={isGenerating}
+      onClick={handleShare}
+      type="button"
+    >
+      {isGenerating ? "Preparazione card..." : "Condividi card IG"}
+    </button>
   );
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
-}
-
-function slugify(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+};

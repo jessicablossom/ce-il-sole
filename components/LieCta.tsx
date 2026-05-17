@@ -7,7 +7,7 @@ type LieCtaProps = {
   selectedCityId: string;
 };
 
-export function LieCta({ isLying, selectedCityId }: LieCtaProps) {
+export const LieCta = ({ isLying, selectedCityId }: LieCtaProps) => {
   const router = useRouter();
   const href = isLying ? `/?city=${selectedCityId}` : `/?city=${selectedCityId}&preview=sole`;
   const label = isLying ? "Basta bugie." : "Mentimi sul sole.";
@@ -28,4 +28,4 @@ export function LieCta({ isLying, selectedCityId }: LieCtaProps) {
       </button>
     </div>
   );
-}
+};

@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 
-export default function Loading() {
+export const Loading = () => {
   return (
     <Layout weatherCondition="unknown">
       <div role="status" className="sr-only">
@@ -21,7 +21,7 @@ export default function Loading() {
       </header>
 
       <div
-        className="flex min-h-0 flex-1 flex-col px-0 pt-7 lg:px-[20%] lg:pt-9"
+        className="flex min-h-0 flex-1 flex-col gap-8 px-0 pt-7 sm:gap-10 lg:px-[20%] lg:pt-9"
         aria-hidden="true"
       >
         <div className="animate-pulse">
@@ -56,4 +56,6 @@ export default function Loading() {
       </div>
     </Layout>
   );
-}
+};
+
+export default Loading;

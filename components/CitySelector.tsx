@@ -10,7 +10,27 @@ type CitySelectorProps = {
   selectedCityId: string;
 };
 
-export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
+const getCityOptionId = (cityId: string): string => `city-option-${cityId}`;
+
+const getCityOptionClassName = ({
+  isActive,
+  isSelected,
+}: {
+  isActive: boolean;
+  isSelected: boolean;
+}): string => {
+  if (isActive) {
+    return "bg-[var(--sun)]/25 font-bold text-[var(--foreground)]";
+  }
+
+  if (isSelected) {
+    return "font-bold text-[var(--foreground)]";
+  }
+
+  return "text-[var(--muted)] hover:bg-[var(--sun)]/15 hover:text-[var(--foreground)]";
+};
+
+export const CitySelector = ({ cities, selectedCityId }: CitySelectorProps) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +39,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
   const [query, setQuery] = useState(selectedCity.name);
   const filteredCities = useMemo(() => filterCitiesByQuery(cities, query), [cities, query]);
 
-  function handleCitySelect(cityId: string) {
+  const handleCitySelect = (cityId: string): void => {
     const nextCity = cities.find((city) => city.id === cityId);
 
     if (nextCity) {
@@ -33,9 +53,9 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
         router.push(`/?city=${cityId}`);
       });
     }
-  }
+  };
 
-  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === "Escape") {
       setIsOpen(false);
       setActiveCityId(selectedCityId);
@@ -66,7 +86,7 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
       event.preventDefault();
       handleCitySelect(cityToSelect.id);
     }
-  }
+  };
 
   return (
     <div className="relative w-full">
@@ -150,26 +170,4 @@ export function CitySelector({ cities, selectedCityId }: CitySelectorProps) {
       ) : null}
     </div>
   );
-}
-
-function getCityOptionId(cityId: string): string {
-  return `city-option-${cityId}`;
-}
-
-function getCityOptionClassName({
-  isActive,
-  isSelected,
-}: {
-  isActive: boolean;
-  isSelected: boolean;
-}): string {
-  if (isActive) {
-    return "bg-[var(--sun)]/25 font-bold text-[var(--foreground)]";
-  }
-
-  if (isSelected) {
-    return "font-bold text-[var(--foreground)]";
-  }
-
-  return "text-[var(--muted)] hover:bg-[var(--sun)]/15 hover:text-[var(--foreground)]";
-}
+};

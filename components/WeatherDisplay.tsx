@@ -11,13 +11,13 @@ type WeatherDisplayProps = {
   weatherCode: number | null;
 };
 
-export function WeatherDisplay({
+export const WeatherDisplay = ({
   children,
   city,
   nextHourOutlookNote = null,
   showShareCard = true,
   weatherCode,
-}: WeatherDisplayProps) {
+}: WeatherDisplayProps) => {
   const mood = getWeatherMood(weatherCode, city);
   const stacksVerdictOnMobile = mood.answer === "Purtroppo no.";
 
@@ -65,4 +65,4 @@ export function WeatherDisplay({
       {children}
     </section>
   );
-}
+};
