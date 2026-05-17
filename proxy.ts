@@ -2,8 +2,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { DEFAULT_CITY_ID } from "@/lib/cities";
 import { isRegisteredCityId } from "@/lib/isRegisteredCityId";
+import { isLikelyGeoNumericCityId } from "@/lib/placeNavigation";
 
-export const proxy = (request: NextRequest): NextResponse => {
+export default function proxy(request: NextRequest): NextResponse {
   const redirect = request.nextUrl.clone();
 
   if (redirect.pathname !== "/") {
@@ -16,21 +17,26 @@ export const proxy = (request: NextRequest): NextResponse => {
     return NextResponse.next();
   }
 
-  if (!isRegisteredCityId(cityFromQuery)) {
+  const trimmedCityFromQuery = cityFromQuery.trim();
+
+  if (isLikelyGeoNumericCityId(trimmedCityFromQuery)) {
+    redirect.pathname = `/g/${encodeURIComponent(trimmedCityFromQuery)}`;
+    redirect.searchParams.delete("city");
+
+    return NextResponse.redirect(redirect, 308);
+  }
+
+  if (!isRegisteredCityId(trimmedCityFromQuery)) {
     return NextResponse.next();
   }
 
-  if (cityFromQuery === DEFAULT_CITY_ID) {
+  if (trimmedCityFromQuery === DEFAULT_CITY_ID) {
     redirect.searchParams.delete("city");
     return NextResponse.redirect(redirect, 308);
   }
 
-  redirect.pathname = `/${cityFromQuery}`;
+  redirect.pathname = `/${encodeURIComponent(trimmedCityFromQuery)}`;
   redirect.searchParams.delete("city");
 
   return NextResponse.redirect(redirect, 308);
-};
-
-export const config = {
-  matcher: ["/"],
-};
+}

@@ -54,8 +54,10 @@ export const serializeHomeRelativeUrlPath = (record: HomeSearchParamsRecord): st
   return query.length > 0 ? `${path}?${query}` : path;
 };
 
-/** Canonical assoluto: slug eccetto Bologna. */
-export const buildCanonicalHomeUrlFromRecord = (record: HomeSearchParamsRecord): string => {
+/** Canonical assoluto: slug catalogo eccetto Bologna (`/`). Solo record legacy `/?.`. */
+export const buildCanonicalHomeUrlFromLegacyHomeRecord = (
+  record: HomeSearchParamsRecord,
+): string => {
   const relative = serializeHomeRelativeUrlPath(record);
   return new URL(relative, getMetadataBaseOrigin()).href;
 };

@@ -1,10 +1,14 @@
 import type { City } from "@/types/weather";
+import { resolveFeaturedCities } from "./featuredCityIds";
 
 export const normalizeCityName = (value: string): string =>
   value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+
+const sortCitiesItalian = (list: readonly City[]): City[] =>
+  [...list].sort((left, right) => left.name.localeCompare(right.name, "it"));
 
 export const filterCitiesByQuery = (
   cities: readonly City[],
@@ -17,6 +21,43 @@ export const filterCitiesByQuery = (
   }
 
   return cities.filter((city) => normalizeCityName(city.name).startsWith(normalizedQuery));
+};
+
+export type SelectorCityBuckets = {
+  pinned: readonly City[];
+  rest: readonly City[];
+};
+
+/**
+ * Liste per il combobox: le città in evidenza sempre per prime (ordine alfabetico nome),
+ * poi il resto filtrato e alfabetizzato. Query vuota → tutto il catalogo dopo i pin.
+ */
+export const bucketCitiesForSelector = (
+  cities: readonly City[],
+  query: string,
+): SelectorCityBuckets => {
+  const featuredSorted = sortCitiesItalian(resolveFeaturedCities());
+  const featuredIds = new Set(featuredSorted.map((city) => city.id));
+  const normalizedQuery = normalizeCityName(query.trim());
+
+  if (normalizedQuery.length === 0) {
+    const restSorted = sortCitiesItalian(cities.filter((city) => !featuredIds.has(city.id)));
+
+    return { pinned: featuredSorted, rest: restSorted };
+  }
+
+  const pinnedMatches = featuredSorted.filter((city) =>
+    normalizeCityName(city.name).startsWith(normalizedQuery),
+  );
+
+  const restMatches = sortCitiesItalian(
+    cities.filter(
+      (city) =>
+        !featuredIds.has(city.id) && normalizeCityName(city.name).startsWith(normalizedQuery),
+    ),
+  );
+
+  return { pinned: pinnedMatches, rest: restMatches };
 };
 
 export const getNextActiveCityId = ({

@@ -23,6 +23,7 @@ export type City = {
   longitude: number;
   timeZone: string;
   sunTone?: "southern-envy";
+  admin1?: string;
 };
 
 export type DailyWeather = {

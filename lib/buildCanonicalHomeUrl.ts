@@ -1,8 +1,8 @@
 import type { HomeSearchParamsRecord } from "./homeUrlRecord";
-import { buildCanonicalHomeUrlFromRecord } from "./homeUrlRecord";
+import { buildCanonicalHomeUrlFromLegacyHomeRecord } from "./homeUrlRecord";
 
 export type { HomeSearchParamsRecord };
 
 export const buildCanonicalHomeUrl = (
   query: HomeSearchParamsRecord,
-): string => buildCanonicalHomeUrlFromRecord(query);
+): string => buildCanonicalHomeUrlFromLegacyHomeRecord(query);

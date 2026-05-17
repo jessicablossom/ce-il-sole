@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import { AnnualStats } from "@/components/AnnualStats";
 import { CitySelector } from "@/components/CitySelector";
 import { Layout } from "@/components/Layout";
@@ -8,10 +9,11 @@ import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { WeatherFavicon } from "@/components/WeatherFavicon";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WeatherUnavailable } from "@/components/WeatherUnavailable";
+import { buildHomeNavigationHrefFromCityId } from "@/lib/buildHomeNavigationHrefFromCityId";
 import { CITIES, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
-import { canonicalHomeRecord } from "@/lib/homeUrlRecord";
-import { buildRelativeHomeHref } from "@/lib/buildHomeHref";
+import { geocodeSearchHitToCity } from "@/lib/geocodeHitToCity";
+import { fetchGeocodeGetItalyByIdParam } from "@/lib/openMeteoGeocode";
 import { getFirstQueryValue } from "@/lib/getFirstQueryValue";
 import { resolveRawHomeCityId } from "@/lib/resolveHomeCityId";
 import { formatItalianDate, getIsoDateInTimeZone } from "@/lib/utils";
@@ -27,6 +29,7 @@ type HomeSearchSlice = {
 
 export type HomePageRouteProps = {
   pathCitySlug?: string | undefined;
+  geoNumericId?: string | undefined;
   searchParams: Promise<HomeSearchSlice>;
 };
 
@@ -36,19 +39,14 @@ const getReportOrNull = async (
 ) => {
   try {
     return await getWeatherReport(city, today);
-  } catch (error) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("Weather report unavailable");
-    } else {
-      console.error("Weather report unavailable", error);
-    }
-
+  } catch {
     return null;
   }
 };
 
 export const HomePage = async ({
   pathCitySlug,
+  geoNumericId,
   searchParams,
 }: HomePageRouteProps): Promise<ReactNode> => {
   const query = await searchParams;
@@ -56,12 +54,6 @@ export const HomePage = async ({
   const previewParam = previewParamRaw
     ? getFirstQueryValue(previewParamRaw)
     : null;
-  const resolvedCityId = resolveRawHomeCityId({
-    cityFromPath: pathCitySlug,
-    rawSearchCity: query.city,
-  });
-  const city = getCityById(resolvedCityId);
-
   const secretPreviewParamRaw = query.meteoSegreto;
   const secretPreviewParam = secretPreviewParamRaw
     ? getFirstQueryValue(secretPreviewParamRaw)
@@ -73,6 +65,25 @@ export const HomePage = async ({
   const isPublicPreview = publicPreviewWeatherCode !== null;
   const isSecretPreview = secretPreviewWeatherCode !== null;
   const isPreview = isPublicPreview || isSecretPreview;
+
+  let city: Awaited<ReturnType<typeof getCityById>>;
+
+  if (typeof geoNumericId === "string" && geoNumericId.trim() !== "") {
+    const hit = await fetchGeocodeGetItalyByIdParam(geoNumericId.trim());
+
+    if (!hit) {
+      notFound();
+    }
+
+    city = geocodeSearchHitToCity(hit);
+  } else {
+    const resolvedCityId = resolveRawHomeCityId({
+      cityFromPath: pathCitySlug,
+      rawSearchCity: query.city,
+    });
+    city = getCityById(resolvedCityId);
+  }
+
   const today = new Date();
   const calendarDayIso = getIsoDateInTimeZone(today, city.timeZone);
   const todayLabel = formatItalianDate(today, city.timeZone);
@@ -99,23 +110,19 @@ export const HomePage = async ({
       ? getNextHourOutlookNote(hourlyWeatherCode, weatherReport.nextHour.weatherCode)
       : null;
 
-  const deactivateLieHref = buildRelativeHomeHref(
-    canonicalHomeRecord({
-      resolvedCityId: city.id,
-      ...(previewParamRaw !== undefined && previewParam !== "sole"
-        ? { preview: previewParamRaw }
-        : {}),
-      ...(secretPreviewParamRaw !== undefined ? { meteoSegreto: secretPreviewParamRaw } : {}),
-    }),
-  );
+  const deactivateLieHref = buildHomeNavigationHrefFromCityId({
+    resolvedCityOrGeoStringId: city.id,
+    ...(previewParamRaw !== undefined && previewParam !== "sole"
+      ? { preview: previewParamRaw }
+      : {}),
+    ...(secretPreviewParamRaw !== undefined ? { meteoSegreto: secretPreviewParamRaw } : {}),
+  });
 
-  const activateLieHref = buildRelativeHomeHref(
-    canonicalHomeRecord({
-      resolvedCityId: city.id,
-      preview: "sole",
-      ...(secretPreviewParamRaw !== undefined ? { meteoSegreto: secretPreviewParamRaw } : {}),
-    }),
-  );
+  const activateLieHref = buildHomeNavigationHrefFromCityId({
+    resolvedCityOrGeoStringId: city.id,
+    preview: "sole",
+    ...(secretPreviewParamRaw !== undefined ? { meteoSegreto: secretPreviewParamRaw } : {}),
+  });
 
   return (
     <Layout weatherCondition={weatherCondition}>
@@ -142,7 +149,12 @@ export const HomePage = async ({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-8 px-0 pt-7 sm:gap-10 lg:px-[20%] lg:pt-9">
-        <CitySelector key={city.id} cities={CITIES} selectedCityId={city.id} />
+        <CitySelector
+          key={city.id}
+          cities={CITIES}
+          resolvedPlaceName={city.name}
+          selectedCityId={city.id}
+        />
 
         {isNight ? (
           <>
