@@ -1,16 +1,24 @@
 import { ImageResponse } from "next/og";
+import { fetchNotoColorEmojiFont, NOTO_COLOR_EMOJI_FAMILY } from "@/lib/fetchNotoColorEmojiFont";
+import { OG_SUNNY_GLASS_THEME } from "@/lib/ogSunnyGlassTheme";
+import { getWeatherIconForCondition } from "@/lib/weatherIcons";
 
 export const runtime = "edge";
 
 export const size = {
   width: 32,
   height: 32,
-};
+} as const;
 
 export const contentType = "image/png";
 
-const Icon = () =>
-  new ImageResponse(
+const SUN_ICON = getWeatherIconForCondition("sunny");
+
+const Icon = async () => {
+  const notoColorEmoji = await fetchNotoColorEmojiFont();
+  const t = OG_SUNNY_GLASS_THEME;
+
+  return new ImageResponse(
     (
       <div
         style={{
@@ -19,21 +27,41 @@ const Icon = () =>
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(145deg, #fff3c9 0%, #f0c45f 100%)",
+          borderRadius: 8,
+          background: `linear-gradient(145deg, ${t.backgroundStart} 0%, ${t.backgroundEnd} 100%)`,
         }}
       >
         <div
           style={{
-            width: 22,
-            height: 22,
-            borderRadius: 11,
-            background: "linear-gradient(145deg, #ffef9e 0%, #f5c518 55%, #e6a010 100%)",
-            boxShadow: "0 0 10px rgba(245, 197, 24, 0.75)",
+            display: "flex",
+            width: 26,
+            height: 26,
+            borderRadius: 8,
+            background: t.glassFill,
+            border: `1.5px solid ${t.glassStroke}`,
+            boxShadow: `0 2px 8px ${t.panelShadow}`,
+            alignItems: "center",
+            justifyContent: "center",
           }}
-        />
+        >
+          <div
+            style={{
+              display: "flex",
+              fontSize: 17,
+              lineHeight: 1,
+              fontFamily: NOTO_COLOR_EMOJI_FAMILY,
+            }}
+          >
+            {SUN_ICON}
+          </div>
+        </div>
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: NOTO_COLOR_EMOJI_FAMILY, data: notoColorEmoji, style: "normal", weight: 400 }],
+    },
   );
+};
 
 export default Icon;
