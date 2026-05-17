@@ -1,5 +1,6 @@
 export type WeatherCondition =
   | "sunny"
+  | "partly-cloudy"
   | "cloudy"
   | "foggy"
   | "drizzle"
@@ -10,7 +11,7 @@ export type WeatherCondition =
 
 export type WeatherMood = {
   condition: WeatherCondition;
-  icon: "☀️" | "☁️" | "🌧️" | "❄️" | "⛈️";
+  icon: "☀️" | "🌤️" | "☁️" | "🌧️" | "❄️" | "⛈️";
   answer: "Sì." | "No." | "Purtroppo no.";
   aside: string;
 };
@@ -29,8 +30,26 @@ export type DailyWeather = {
   weatherCode: number;
 };
 
+export type HourWeatherSnapshot = {
+  isDay: 0 | 1;
+  time: string;
+  weatherCode: number;
+};
+
+/** Year-to-date counts from the archive API only (delayed window). Sunny days omitted. */
+export type ArchiveWithoutSunBuckets = {
+  fog: number;
+  overcast: number;
+  partlyCloudy: number;
+  precipitation: number;
+  snow: number;
+};
+
 export type WeatherReport = {
   city: City;
+  currentHour: HourWeatherSnapshot | null;
+  nextHour: HourWeatherSnapshot | null;
+  sansSoleBucketsThisYear: ArchiveWithoutSunBuckets;
   today: DailyWeather | null;
   sunnyDaysThisYear: number;
   lastSunnyDay: string | null;

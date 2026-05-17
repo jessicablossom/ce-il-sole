@@ -20,6 +20,16 @@ const SOUTHERN_SUNNY_ASIDES = [
   "Una provocazione geografica.",
 ] as const;
 
+const PARTLY_CLOUDY_ASIDES = [
+  "Quasi felici. Ma con moderazione.",
+  "Il sole c’è. La felicità resta in revisione.",
+  "Una gioia parziale, quindi più credibile.",
+  "Abbastanza sole da illudersi. Non esageriamo.",
+  "Una giornata quasi gentile. Quasi.",
+  "Sole intermittente. Speranza pure.",
+  "Cielo diplomatico: concede, ma non si compromette.",
+] as const;
+
 const CLOUDY_ASIDES = [
   "Una scelta coerente.",
   "Il cielo ha messo il pilota automatico.",
@@ -61,6 +71,15 @@ export function getWeatherMoodCopy({
       icon: "☀️",
       answer: "Sì.",
       aside: pickAside(asides, weatherCode, city),
+    };
+  }
+
+  if (condition === "partly-cloudy") {
+    return {
+      condition,
+      icon: getWeatherIconForCondition(condition),
+      answer: "Sì.",
+      aside: pickAside(PARTLY_CLOUDY_ASIDES, weatherCode, city),
     };
   }
 

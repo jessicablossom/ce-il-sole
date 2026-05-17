@@ -2,6 +2,7 @@ const PREVIEW_WEATHER_CODES = {
   nebbia: 45,
   neve: 71,
   nuvole: 3,
+  parzialmente: 2,
   pioggerella: 51,
   pioggia: 61,
   sole: 0,

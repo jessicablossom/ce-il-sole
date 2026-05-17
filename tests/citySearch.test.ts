@@ -14,9 +14,10 @@ describe("city search utilities", () => {
     expect(normalizeCityName(" L’AQUILA ")).toBe(" l’aquila ");
   });
 
-  it("filters cities with accent-insensitive matching", () => {
+  it("filters cities from the first character with accent-insensitive matching", () => {
     expect(filterCitiesByQuery(cities, "forli").map((city) => city.id)).toEqual(["forli"]);
     expect(filterCitiesByQuery(cities, "fi").map((city) => city.id)).toEqual(["firenze"]);
+    expect(filterCitiesByQuery(cities, "logna")).toEqual([]);
   });
 
   it("cycles active city selection by keyboard direction", () => {

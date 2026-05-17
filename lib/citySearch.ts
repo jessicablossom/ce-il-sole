@@ -7,7 +7,7 @@ export function filterCitiesByQuery(cities: readonly City[], query: string): rea
     return cities;
   }
 
-  return cities.filter((city) => normalizeCityName(city.name).includes(normalizedQuery));
+  return cities.filter((city) => normalizeCityName(city.name).startsWith(normalizedQuery));
 }
 
 export function getNextActiveCityId({

@@ -4,6 +4,7 @@ import { getPreviewWeatherCode, isSunLiePreview } from "../lib/weatherPreview";
 describe("weather preview utilities", () => {
   it("maps preview names to representative WMO codes", () => {
     expect(getPreviewWeatherCode("sole")).toBe(0);
+    expect(getPreviewWeatherCode("parzialmente")).toBe(2);
     expect(getPreviewWeatherCode("nuvole")).toBe(3);
     expect(getPreviewWeatherCode("nebbia")).toBe(45);
     expect(getPreviewWeatherCode("pioggerella")).toBe(51);

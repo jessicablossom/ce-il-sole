@@ -4,6 +4,7 @@ import { getWeatherIconForCondition } from "../lib/weatherIcons";
 describe("weather icon utilities", () => {
   it("maps weather conditions to favicon-ready emoji", () => {
     expect(getWeatherIconForCondition("sunny")).toBe("☀️");
+    expect(getWeatherIconForCondition("partly-cloudy")).toBe("🌤️");
     expect(getWeatherIconForCondition("cloudy")).toBe("☁️");
     expect(getWeatherIconForCondition("foggy")).toBe("☁️");
     expect(getWeatherIconForCondition("drizzle")).toBe("🌧️");

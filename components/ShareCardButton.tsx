@@ -172,6 +172,17 @@ function getSharePalette(condition: WeatherMood["condition"]): SharePalette {
       orb: "rgba(150, 163, 171, 0.36)",
       shadow: "rgba(63, 86, 102, 0.18)",
     },
+    "partly-cloudy": {
+      accent: "#c7962f",
+      backgroundEnd: "#d8d3bd",
+      backgroundStart: "#fff0b8",
+      foreground: "#1e2428",
+      glassFill: "rgba(255, 255, 255, 0.4)",
+      glassStroke: "rgba(255, 255, 255, 0.62)",
+      muted: "rgba(30, 36, 40, 0.56)",
+      orb: "rgba(255, 255, 255, 0.46)",
+      shadow: "rgba(120, 100, 54, 0.22)",
+    },
     rainy: {
       accent: "#315d78",
       backgroundEnd: "#b9ccd7",

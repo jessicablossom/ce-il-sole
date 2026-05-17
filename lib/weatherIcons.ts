@@ -4,6 +4,7 @@ const WEATHER_ICONS = {
   cloudy: "☁️",
   drizzle: "🌧️",
   foggy: "☁️",
+  "partly-cloudy": "🌤️",
   rainy: "🌧️",
   snowy: "❄️",
   stormy: "⛈️",

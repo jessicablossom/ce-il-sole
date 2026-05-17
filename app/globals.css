@@ -3,6 +3,7 @@
 :root {
   --background: #e9edf0;
   --background-sunny: #f6d987;
+  --background-partly-cloudy: #eadba8;
   --background-foggy: #dfe6e9;
   --background-drizzle: #d8e1e7;
   --background-rainy: #cbd8df;
@@ -11,6 +12,7 @@
   --background-unknown: #e4e8eb;
   --surface: #dce3e8;
   --surface-sunny: #efd078;
+  --surface-partly-cloudy: #e2d3a0;
   --surface-foggy: #d3dde2;
   --surface-drizzle: #ccd8df;
   --surface-rainy: #cbd6de;

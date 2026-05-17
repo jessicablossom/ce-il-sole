@@ -18,6 +18,10 @@ describe("weather utilities", () => {
       icon: "☀️",
       answer: "Sì.",
     });
+    expect(getWeatherMood(2)).toMatchObject({
+      icon: "🌤️",
+      answer: "Sì.",
+    });
     expect(getWeatherMood(3)).toMatchObject({
       icon: "☁️",
       answer: "No.",
@@ -39,6 +43,7 @@ describe("weather utilities", () => {
 
   it("maps WMO weather codes to visual weather conditions", () => {
     expect(getWeatherConditionFromCode(0)).toBe("sunny");
+    expect(getWeatherConditionFromCode(2)).toBe("partly-cloudy");
     expect(getWeatherConditionFromCode(3)).toBe("cloudy");
     expect(getWeatherConditionFromCode(45)).toBe("foggy");
     expect(getWeatherConditionFromCode(51)).toBe("drizzle");

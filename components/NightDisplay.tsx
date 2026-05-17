@@ -30,7 +30,9 @@ export function NightDisplay({ city, weatherCode }: NightDisplayProps) {
         <p className="mt-3 whitespace-nowrap font-serif text-5xl leading-none tracking-tighter sm:text-6xl">
           <span
             className={
-              dayMood.condition === "sunny" ? "text-[var(--sun)]" : "text-[var(--rain)]"
+              dayMood.condition === "sunny" || dayMood.condition === "partly-cloudy"
+                ? "text-[var(--sun)]"
+                : "text-[var(--rain)]"
             }
           >
             {dayMood.icon}

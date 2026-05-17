@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getWeatherCodeDescription,
   getWeatherConditionFromCode,
   isNegativeWeatherCondition,
   isSunnyWeatherCode,
@@ -8,6 +9,7 @@ import {
 describe("weather code utilities", () => {
   it("maps WMO groups to app weather conditions", () => {
     expect(getWeatherConditionFromCode(0)).toBe("sunny");
+    expect(getWeatherConditionFromCode(2)).toBe("partly-cloudy");
     expect(getWeatherConditionFromCode(3)).toBe("cloudy");
     expect(getWeatherConditionFromCode(45)).toBe("foggy");
     expect(getWeatherConditionFromCode(51)).toBe("drizzle");
@@ -23,11 +25,19 @@ describe("weather code utilities", () => {
     expect(isSunnyWeatherCode(2)).toBe(false);
   });
 
+  it("describes WMO weather codes for diagnostics", () => {
+    expect(getWeatherCodeDescription(0)).toBe("Clear sky");
+    expect(getWeatherCodeDescription(2)).toBe("Partly cloudy");
+    expect(getWeatherCodeDescription(999)).toBe("Unknown WMO weather code");
+    expect(getWeatherCodeDescription(null)).toBe("No weather code");
+  });
+
   it("identifies conditions that are definitely not sun", () => {
     expect(isNegativeWeatherCondition("drizzle")).toBe(true);
     expect(isNegativeWeatherCondition("rainy")).toBe(true);
     expect(isNegativeWeatherCondition("snowy")).toBe(true);
     expect(isNegativeWeatherCondition("stormy")).toBe(true);
+    expect(isNegativeWeatherCondition("partly-cloudy")).toBe(false);
     expect(isNegativeWeatherCondition("cloudy")).toBe(false);
   });
 });

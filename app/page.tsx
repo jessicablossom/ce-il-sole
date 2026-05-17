@@ -10,6 +10,7 @@ import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
 import { formatItalianDate } from "@/lib/utils";
 import { getWeatherConditionFromCode, getWeatherReport } from "@/lib/weather";
+import { getNextHourOutlookNote } from "@/lib/nextHourHint";
 import { getPreviewWeatherCode, isSunLiePreview } from "@/lib/weatherPreview";
 
 type HomeProps = {
@@ -36,17 +37,28 @@ export default async function Home({ searchParams }: HomeProps) {
   const city = getCityById(selectedCityId);
   const today = new Date();
   const todayLabel = formatItalianDate(today, city.timeZone);
-  const isNight = isPreview ? false : isNightInCentralEurope(today);
   const weatherReport = await getReportOrNull(city, today);
-  const actualWeatherCode = weatherReport?.today?.weatherCode ?? null;
-  const actualWeatherCondition = getWeatherConditionFromCode(actualWeatherCode);
-  const weatherCode = previewWeatherCode ?? actualWeatherCode;
+  const currentHourSnapshot = weatherReport?.currentHour ?? null;
+  const hasHourSnapshot = currentHourSnapshot !== null;
+  const hourlyWeatherCode = currentHourSnapshot?.weatherCode ?? null;
+  const dailyWeatherCode = weatherReport?.today?.weatherCode ?? null;
+  const liveActualWeatherCode = hourlyWeatherCode ?? dailyWeatherCode;
+  const isNight =
+    !isPreview &&
+    (hasHourSnapshot ? currentHourSnapshot.isDay === 0 : isNightInCentralEurope(today));
+  const nightRecapWeatherCode = dailyWeatherCode ?? hourlyWeatherCode;
+  const truthfulCondition = getWeatherConditionFromCode(liveActualWeatherCode);
+  const weatherCode = previewWeatherCode ?? liveActualWeatherCode;
   const weatherCondition = isNight ? "unknown" : getWeatherConditionFromCode(weatherCode);
   const faviconCondition = getWeatherConditionFromCode(weatherCode);
   const isLying = isSunLiePreview(previewParam);
   const shouldShowLieCta =
     !isSecretPreview &&
-    (isLying || (actualWeatherCondition !== "sunny" && actualWeatherCondition !== "unknown"));
+    (isLying || (truthfulCondition !== "sunny" && truthfulCondition !== "unknown"));
+  const nextHourOutlookNote =
+    !isPreview && hourlyWeatherCode !== null && weatherReport?.nextHour
+      ? getNextHourOutlookNote(hourlyWeatherCode, weatherReport.nextHour.weatherCode)
+      : null;
 
   return (
     <Layout weatherCondition={weatherCondition}>
@@ -77,11 +89,12 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {isNight ? (
           <>
-            <NightDisplay city={city} weatherCode={actualWeatherCode} />
+            <NightDisplay city={city} weatherCode={nightRecapWeatherCode} />
             {weatherReport ? (
               <AnnualStats
                 cityName={weatherReport.city.name}
                 lastSunnyDay={weatherReport.lastSunnyDay}
+                sansSoleBucketsThisYear={weatherReport.sansSoleBucketsThisYear}
                 sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
                 timeZone={weatherReport.city.timeZone}
               />
@@ -91,6 +104,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <>
             <WeatherDisplay
               city={city}
+              nextHourOutlookNote={nextHourOutlookNote}
               showShareCard={!isPublicPreview}
               weatherCode={weatherCode}
             >
@@ -98,6 +112,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 <AnnualStats
                   cityName={weatherReport.city.name}
                   lastSunnyDay={weatherReport.lastSunnyDay}
+                  sansSoleBucketsThisYear={weatherReport.sansSoleBucketsThisYear}
                   sunnyDaysThisYear={weatherReport.sunnyDaysThisYear}
                   timeZone={weatherReport.city.timeZone}
                 />

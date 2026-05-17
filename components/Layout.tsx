@@ -5,6 +5,8 @@ const WEATHER_THEME_CLASS_NAMES = {
   cloudy: "bg-[var(--background)]",
   drizzle: "bg-[var(--background-drizzle)] [--panel:var(--surface-drizzle)]",
   foggy: "bg-[var(--background-foggy)] [--panel:var(--surface-foggy)]",
+  "partly-cloudy":
+    "bg-[var(--background-partly-cloudy)] [--panel:var(--surface-partly-cloudy)]",
   rainy: "bg-[var(--background-rainy)] [--panel:var(--surface-rainy)]",
   snowy: "bg-[var(--background-snowy)] [--panel:var(--surface-snowy)]",
   stormy: "bg-[var(--background-stormy)] [--panel:var(--surface-stormy)]",
