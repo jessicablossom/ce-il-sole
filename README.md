@@ -20,7 +20,7 @@ Durante il giorno è possibile salvare una card verticale per Instagram Story co
 
 Ogni città ha una pagina sul path **`/[slug]`** (lo slug coincide con l'`id` in `lib/cities.ts`, es. `/roma`, `/milano`). La città predefinita (Bologna) resta sulla **home `/`** senza slug nel canonical.
 
-La vecchia query **`/?city=slug`** viene reindirizzata **308** allo slug corrispondente (middleware); parametri **`preview`** e **`meteoSegreto`** restano nella query quando servono.
+La vecchia query **`/?city=slug`** viene reindirizzata **308** allo slug corrispondente (proxy Next.js); parametri **`preview`** e **`meteoSegreto`** restano nella query quando servono.
 
 ### Frasi giornaliere
 
@@ -32,7 +32,7 @@ Le righe ironiche sotto il verdetto ruotano con più varianti; quando è disponi
 
 ### Git hooks
 
-Dopo **`npm install`**, Husky configura il **pre-commit** con **`npm run lint`** e **`npm run test`**. Per saltarlo una volta: `HUSKY=0 git commit …`.
+Dopo **`npm install`**, Husky configura il **pre-commit** con **`npm run lint`**, **`npm run test`** e **`npm run build`**. Per saltarlo una volta: `HUSKY=0 git commit …`.
 
 ### Avvio locale
 
@@ -122,12 +122,12 @@ lib/
   weatherIcons.ts         Icone per condizione.
   weatherPreview.ts       Preview/lie mode non condivisibile.
 
-middleware.ts          Redirect `/?city=` → `/slug` (308).
+proxy.ts               Redirect `/?city=` → `/slug` (308).
 
 public/
   site.webmanifest     Manifest PWA leggero.
 
-.husky/pre-commit      Lint + test prima di ogni commit.
+.husky/pre-commit      Lint, test e build (`next build`) prima di ogni commit.
 
 tests/
   *.test.ts            Test unitari per utility e logica meteo.
@@ -161,7 +161,7 @@ During daytime, users can save a vertical Instagram Story card with the city, we
 
 Each city has a page at **`/[slug]`** (same as the city `id` in `lib/cities.ts`, e.g. `/roma`, `/milano`). The default city (Bologna) keeps the canonical URL at **`/`** without a slug segment.
 
-Legacy **`/?city=slug`** requests are **308** redirected to the slug path (middleware); **`preview`** and **`meteoSegreto`** query params are preserved when needed.
+Legacy **`/?city=slug`** requests are **308** redirected to the slug path (Next.js proxy); **`preview`** and **`meteoSegreto`** query params are preserved when needed.
 
 ### Daily copy rotation
 
@@ -173,7 +173,7 @@ Verdict asides pull from larger pools of lines; when the city’s calendar date 
 
 ### Git hooks
 
-After **`npm install`**, Husky wires **pre-commit** to **`npm run lint`** then **`npm run test`**. To skip once: `HUSKY=0 git commit …`.
+After **`npm install`**, Husky wires **pre-commit** to **`npm run lint`**, **`npm run test`**, then **`npm run build`**. To skip once: `HUSKY=0 git commit …`.
 
 ### Run locally / Getting started
 
@@ -263,12 +263,12 @@ lib/
   weatherIcons.ts            Weather condition icons.
   weatherPreview.ts          Non-shareable preview/lie mode.
 
-middleware.ts            Redirect `/?city=` → `/slug` (308).
+proxy.ts                 Redirect `/?city=` → `/slug` (308).
 
 public/
   site.webmanifest       Lightweight PWA manifest.
 
-.husky/pre-commit      Lint + test before each commit.
+.husky/pre-commit      Lint, tests, then production build (`next build`) before each commit.
 
 tests/
   *.test.ts              Unit tests for utilities and weather logic.

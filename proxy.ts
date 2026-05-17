@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { DEFAULT_CITY_ID } from "@/lib/cities";
 import { isRegisteredCityId } from "@/lib/isRegisteredCityId";
 
-export const middleware = (request: NextRequest): NextResponse => {
+export const proxy = (request: NextRequest): NextResponse => {
   const redirect = request.nextUrl.clone();
 
   if (redirect.pathname !== "/") {

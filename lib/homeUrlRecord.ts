@@ -35,17 +35,18 @@ export const serializeHomeRelativeUrlPath = (record: HomeSearchParamsRecord): st
     cityRaw === null || cityRaw === DEFAULT_CITY_ID ? undefined : cityRaw;
 
   const path = citySegment !== undefined ? `/${encodeURIComponent(citySegment)}` : "/";
-  const preview = typeof record.preview === "undefined" ? undefined : getFirstQueryValue(record.preview);
+  const preview =
+    typeof record.preview === "undefined" ? undefined : getFirstQueryValue(record.preview);
   const secret =
     typeof record.meteoSegreto === "undefined"
       ? undefined
       : getFirstQueryValue(record.meteoSegreto);
 
   const search = new URLSearchParams();
-  if (preview !== undefined && preview.length > 0) {
+  if (preview != null && preview.length > 0) {
     search.set("preview", preview);
   }
-  if (secret !== undefined && secret.length > 0) {
+  if (secret != null && secret.length > 0) {
     search.set("meteoSegreto", secret);
   }
 
@@ -61,4 +62,4 @@ export const buildCanonicalHomeUrlFromRecord = (record: HomeSearchParamsRecord):
 
 const pickOptionalCity = (
   query: Pick<HomeSearchParamsRecord, "city">,
-): string | undefined => getFirstQueryValue(query.city);
+): string | null => getFirstQueryValue(query.city);
