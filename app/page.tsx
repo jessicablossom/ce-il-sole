@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AnnualStats } from "@/components/AnnualStats";
 import { CitySelector } from "@/components/CitySelector";
 import { Layout } from "@/components/Layout";
@@ -9,6 +10,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { WeatherUnavailable } from "@/components/WeatherUnavailable";
 import { CITIES, DEFAULT_CITY_ID, getCityById } from "@/lib/cities";
 import { isNightInCentralEurope } from "@/lib/dayPeriod";
+import { buildCanonicalHomeUrl } from "@/lib/buildCanonicalHomeUrl";
+import { getFirstQueryValue } from "@/lib/getFirstQueryValue";
 import { formatItalianDate } from "@/lib/utils";
 import { getWeatherConditionFromCode, getWeatherReport } from "@/lib/weather";
 import { getNextHourOutlookNote } from "@/lib/nextHourHint";
@@ -22,12 +25,16 @@ type HomeProps = {
   }>;
 };
 
-const getSingleQueryParam = (param: string | string[] | undefined): string | null => {
-  if (typeof param === "string") {
-    return param;
-  }
+export const generateMetadata = async ({
+  searchParams,
+}: HomeProps): Promise<Metadata> => {
+  const query = await searchParams;
+  const canonical = buildCanonicalHomeUrl(query);
 
-  return param?.[0] ?? null;
+  return {
+    alternates: { canonical },
+    openGraph: { url: canonical },
+  };
 };
 
 const getReportOrNull = async (
@@ -50,8 +57,8 @@ const getReportOrNull = async (
 export const Home = async ({ searchParams }: HomeProps) => {
   const query = await searchParams;
   const selectedCityParam = query.city;
-  const previewParam = getSingleQueryParam(query.preview);
-  const secretPreviewParam = getSingleQueryParam(query.meteoSegreto);
+  const previewParam = getFirstQueryValue(query.preview);
+  const secretPreviewParam = getFirstQueryValue(query.meteoSegreto);
   const publicPreviewWeatherCode = getPreviewWeatherCode(previewParam);
   const secretPreviewWeatherCode = getPreviewWeatherCode(secretPreviewParam);
   const previewWeatherCode = secretPreviewWeatherCode ?? publicPreviewWeatherCode;
