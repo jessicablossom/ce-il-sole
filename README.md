@@ -16,6 +16,24 @@ Il tono è minimale, asciutto, un po' passivo-aggressivo.
 
 Durante il giorno è possibile salvare una card verticale per Instagram Story con città, icona meteo e frase del giorno.
 
+### Avvio locale
+
+Installa le dipendenze:
+
+```bash
+npm install
+```
+
+Avvia il server di sviluppo:
+
+```bash
+npm run dev
+```
+
+Apri [http://localhost:3000](http://localhost:3000) nel browser.
+
+Altri comandi utili: `npm run build`, `npm run start`, `npm run lint`, `npm run test`.
+
 ### Tech Stack
 
 - Next.js 16 con App Router
@@ -105,6 +123,24 @@ The app lets users choose an Italian city, read a minimal verdict (`Sì.`, `No.`
 The tone is editorial, minimal, slightly passive-aggressive, and shaped by northern Italian weather frustration. Southern sunny cities get a more openly envious treatment.
 
 During daytime, users can save a vertical Instagram Story card with the city, weather icon and daily phrase.
+
+### Run locally / Getting started
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Other useful scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run test`.
 
 ### Tech Stack
 
