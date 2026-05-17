@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { Bodoni_Moda, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
+const getMetadataBase = (): URL =>
+  new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  );
+
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
@@ -15,9 +21,29 @@ const bodoniModa = Bodoni_Moda({
   style: ["normal", "italic"],
 });
 
+const defaultTitle = "C’è il sole?";
+const defaultDescription = "La previsione più inutile d’Italia.";
+
 export const metadata: Metadata = {
-  title: "C’è il sole?",
-  description: "La previsione più inutile d’Italia.",
+  metadataBase: getMetadataBase(),
+  title: {
+    default: defaultTitle,
+    template: `%s · ${defaultTitle}`,
+  },
+  description: defaultDescription,
+  applicationName: defaultTitle,
+  openGraph: {
+    title: defaultTitle,
+    description: defaultDescription,
+    siteName: defaultTitle,
+    locale: "it_IT",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
 };
 
 export const RootLayout = ({
