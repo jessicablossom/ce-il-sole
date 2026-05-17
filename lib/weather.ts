@@ -179,6 +179,13 @@ export const getWeatherReport = async (
 
   const sunnyArchiveDays = archiveDays.filter((day) => isSunnyWeatherCode(day.weatherCode));
 
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `[ce-il-sole] giorni di sole (archive WMO 0–1): ${city.name} · intervallo ${yearStartIsoDate} → ${archiveEndIsoDate} · conteggio ${sunnyArchiveDays.length}`,
+      sunnyArchiveDays.map((day) => ({ data: day.date, codice: day.weatherCode })),
+    );
+  }
+
   return {
     city,
     currentHour: forecast.currentHour,
