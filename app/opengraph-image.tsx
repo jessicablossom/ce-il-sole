@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
-import { fetchNotoColorEmojiFont, NOTO_COLOR_EMOJI_FAMILY } from "@/lib/fetchNotoColorEmojiFont";
 import { OG_SUNNY_GLASS_THEME } from "@/lib/ogSunnyGlassTheme";
-import { getWeatherIconForCondition } from "@/lib/weatherIcons";
+import { getOgSunPngAbsoluteUrl } from "@/lib/ogSunAssetUrl";
 
 export const runtime = "edge";
 
@@ -17,11 +16,9 @@ export const contentType = "image/png";
 const PANEL_INSET = 48;
 const PANEL_RADIUS = 64;
 
-const SUN_ICON = getWeatherIconForCondition("sunny");
-
-const OpenGraphImage = async () => {
-  const notoColorEmoji = await fetchNotoColorEmojiFont();
+const OpenGraphImage = () => {
   const t = OG_SUNNY_GLASS_THEME;
+  const sunSrc = getOgSunPngAbsoluteUrl();
 
   return new ImageResponse(
     (
@@ -94,24 +91,19 @@ const OpenGraphImage = async () => {
               justifyContent: "center",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 280,
-                lineHeight: 1,
-                fontFamily: NOTO_COLOR_EMOJI_FAMILY,
-              }}
-            >
-              {SUN_ICON}
-            </div>
+            {/* PNG: Satori cannot reliably render color emoji fonts on the Edge runtime. */}
+            <img
+              alt=""
+              height={280}
+              src={sunSrc}
+              style={{ display: "flex" }}
+              width={280}
+            />
           </div>
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: [{ name: NOTO_COLOR_EMOJI_FAMILY, data: notoColorEmoji, style: "normal", weight: 400 }],
-    },
+    { ...size },
   );
 };
 
