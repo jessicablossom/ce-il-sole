@@ -2,12 +2,13 @@ import { getWeatherMood } from "@/lib/weather";
 import type { City } from "@/types/weather";
 
 type NightDisplayProps = {
+  calendarDayIso: string;
   city: City;
   weatherCode: number | null;
 };
 
-export const NightDisplay = ({ city, weatherCode }: NightDisplayProps) => {
-  const dayMood = getWeatherMood(weatherCode, city);
+export const NightDisplay = ({ calendarDayIso, city, weatherCode }: NightDisplayProps) => {
+  const dayMood = getWeatherMood(weatherCode, city, { calendarDayIso });
 
   return (
     <section

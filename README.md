@@ -16,6 +16,24 @@ Il tono è minimale, asciutto, un po' passivo-aggressivo.
 
 Durante il giorno è possibile salvare una card verticale per Instagram Story con città, icona meteo e frase del giorno.
 
+### URL condivisibili e SEO
+
+Ogni città ha una pagina sul path **`/[slug]`** (lo slug coincide con l'`id` in `lib/cities.ts`, es. `/roma`, `/milano`). La città predefinita (Bologna) resta sulla **home `/`** senza slug nel canonical.
+
+La vecchia query **`/?city=slug`** viene reindirizzata **308** allo slug corrispondente (middleware); parametri **`preview`** e **`meteoSegreto`** restano nella query quando servono.
+
+### Frasi giornaliere
+
+Le righe ironiche sotto il verdetto ruotano con più varianti; quando è disponibile la data civile nel fuso della città, il seed include **giorno + città + codice meteo**, così la stessa condizione può cambiare tono da un giorno all’altro.
+
+### PWA leggera
+
+È presente un **`site.webmanifest`** in `public/` (nome corto, colori tema, icona `/icon`) per installazione “standalone” dove il browser lo supporta.
+
+### Git hooks
+
+Dopo **`npm install`**, Husky configura il **pre-commit** con **`npm run lint`** e **`npm run test`**. Per saltarlo una volta: `HUSKY=0 git commit …`.
+
 ### Avvio locale
 
 Installa le dipendenze:
@@ -68,13 +86,15 @@ L'app usa i codici WMO per decidere se il giorno è soleggiato, nuvoloso, nebbio
 
 ```txt
 app/
-  layout.tsx        Shell globale, font e metadata.
-  page.tsx          Pagina principale, fetch meteo e composizione UI.
-  loading.tsx       Skeleton UI durante il cambio di città.
-  not-found.tsx     404 ironica.
-  globals.css       Palette, variabili CSS e stili globali.
+  layout.tsx           Shell globale, font, metadata e manifest PWA.
+  page.tsx             Home `/`; delega a HomePage.
+  [citySlug]/page.tsx  Route dinamica per slug città + redirect Bologna → `/`.
+  loading.tsx          Skeleton UI durante il cambio di città.
+  not-found.tsx        404 ironica.
+  globals.css          Palette, variabili CSS e stili globali.
 
 components/
+  HomePage.tsx          Pagina principale server-side (meteo + UI).
   AnnualStats.tsx       Statistiche annuali.
   CitySelector.tsx      Selettore ricercabile delle città.
   Layout.tsx            Layout e tema cromatico per condizione meteo.
@@ -86,21 +106,34 @@ components/
   WeatherUnavailable.tsx Fallback quando il meteo non arriva.
 
 lib/
-  cities.ts          Capitali di provincia italiane.
-  citySearch.ts      Utility per ricerca e navigazione nel selector.
-  dayPeriod.ts       Logica giorno/notte.
-  utils.ts           Utility di data.
-  weather.ts         Client Axios e parsing Open-Meteo.
-  weatherCodes.ts    Mapping codici WMO.
-  weatherCopy.ts     Microcopy ironica.
-  weatherIcons.ts    Icone per condizione.
-  weatherPreview.ts  Preview/lie mode non condivisibile.
+  cities.ts               Capitali di provincia italiane.
+  citySearch.ts           Utility per ricerca e navigazione nel selector.
+  buildCanonicalHomeUrl.ts URL canonico assoluto (slug + query preview).
+  buildHomeHref.ts        Path relativi per navigazione client.
+  homeUrlRecord.ts        Serializzazione path/query home.
+  resolveHomeCityId.ts    Risoluzione città da slug vs query.
+  isRegisteredCityId.ts   Validazione slug città.
+  generateHomeMetadata.ts Metadata canonical/Open Graph home.
+  dayPeriod.ts            Logica giorno/notte.
+  utils.ts                Utility di data.
+  weather.ts              Client Axios e parsing Open-Meteo.
+  weatherCodes.ts         Mapping codici WMO.
+  weatherCopy.ts          Microcopy ironica (varianti giornaliere).
+  weatherIcons.ts         Icone per condizione.
+  weatherPreview.ts       Preview/lie mode non condivisibile.
+
+middleware.ts          Redirect `/?city=` → `/slug` (308).
+
+public/
+  site.webmanifest     Manifest PWA leggero.
+
+.husky/pre-commit      Lint + test prima di ogni commit.
 
 tests/
-  *.test.ts          Test unitari per utility e logica meteo.
+  *.test.ts            Test unitari per utility e logica meteo.
 
 types/
-  *.ts               Tipi condivisi.
+  *.ts                 Tipi condivisi.
 ```
 
 ### Possibili estensioni
@@ -110,7 +143,7 @@ types/
 - Cache server-side più intelligente per ridurre chiamate ripetute.
 - Storico mensile o stagionale, sempre con tono inutilmente drammatico.
 - Selector futuro per altri paesi, senza trasformarla in un'app meteo seria.
-- GitHub Actions per test, lint e build automatici.
+- GitHub Actions per CI remota (lint/test/build); in locale Husky già blocca commit rotti.
 
 ## English
 
@@ -123,6 +156,24 @@ The app lets users choose an Italian city, read a minimal verdict (`Sì.`, `No.`
 The tone is editorial, minimal, slightly passive-aggressive, and shaped by northern Italian weather frustration. Southern sunny cities get a more openly envious treatment.
 
 During daytime, users can save a vertical Instagram Story card with the city, weather icon and daily phrase.
+
+### Shareable URLs & SEO
+
+Each city has a page at **`/[slug]`** (same as the city `id` in `lib/cities.ts`, e.g. `/roma`, `/milano`). The default city (Bologna) keeps the canonical URL at **`/`** without a slug segment.
+
+Legacy **`/?city=slug`** requests are **308** redirected to the slug path (middleware); **`preview`** and **`meteoSegreto`** query params are preserved when needed.
+
+### Daily copy rotation
+
+Verdict asides pull from larger pools of lines; when the city’s calendar date is known, the seed uses **local calendar day + city + weather code**, so tone can shift day to day for the same condition.
+
+### Lightweight PWA
+
+`public/site.webmanifest` declares name, theme colours and `/icon` so browsers may offer install-to-home-screen where supported.
+
+### Git hooks
+
+After **`npm install`**, Husky wires **pre-commit** to **`npm run lint`** then **`npm run test`**. To skip once: `HUSKY=0 git commit …`.
 
 ### Run locally / Getting started
 
@@ -176,39 +227,54 @@ The app maps WMO weather codes into internal conditions such as sunny, cloudy, f
 
 ```txt
 app/
-  layout.tsx        Global shell, fonts and metadata.
-  page.tsx          Main page, weather fetching and UI composition.
-  loading.tsx       Skeleton UI while changing city.
-  not-found.tsx     Sarcastic 404 page.
-  globals.css       Palette, CSS variables and global styles.
+  layout.tsx             Global shell, fonts, metadata and PWA manifest.
+  page.tsx               `/` home; delegates to HomePage.
+  [citySlug]/page.tsx    Dynamic city slug route + Bologna redirect to `/`.
+  loading.tsx            Skeleton UI while changing city.
+  not-found.tsx          Sarcastic 404 page.
+  globals.css            Palette, CSS variables and global styles.
 
 components/
-  AnnualStats.tsx       Yearly statistics.
-  CitySelector.tsx      Searchable city selector.
-  Layout.tsx            Layout and weather-based visual theme.
-  LieCta.tsx            CTA for the fake sunny preview.
-  NightDisplay.tsx      Night state.
-  ShareCardButton.tsx   Shareable vertical card.
-  WeatherDisplay.tsx    Main verdict.
-  WeatherFavicon.tsx    Dynamic favicon.
+  HomePage.tsx           Main server page (weather fetch + UI).
+  AnnualStats.tsx        Yearly statistics.
+  CitySelector.tsx       Searchable city selector.
+  Layout.tsx             Layout and weather-based visual theme.
+  LieCta.tsx             CTA for the fake sunny preview.
+  NightDisplay.tsx       Night state.
+  ShareCardButton.tsx    Shareable vertical card.
+  WeatherDisplay.tsx     Main verdict.
+  WeatherFavicon.tsx     Dynamic favicon.
   WeatherUnavailable.tsx Weather fallback.
 
 lib/
-  cities.ts          Italian provincial capitals.
-  citySearch.ts      City selector search/navigation utilities.
-  dayPeriod.ts       Day/night logic.
-  utils.ts           Date utilities.
-  weather.ts         Open-Meteo Axios client and parsing logic.
-  weatherCodes.ts    WMO code mapping.
-  weatherCopy.ts     Ironic weather copy.
-  weatherIcons.ts    Weather condition icons.
-  weatherPreview.ts  Non-shareable preview/lie mode.
+  cities.ts                  Italian provincial capitals.
+  citySearch.ts              City selector search/navigation utilities.
+  buildCanonicalHomeUrl.ts   Absolute canonical URLs (slug + preview query).
+  buildHomeHref.ts           Relative paths for client navigation.
+  homeUrlRecord.ts           Home path/query serialization helpers.
+  resolveHomeCityId.ts       Resolve city from slug vs query param.
+  isRegisteredCityId.ts    Validate city slug IDs.
+  generateHomeMetadata.ts    Canonical / OG metadata for home routes.
+  dayPeriod.ts               Day/night logic.
+  utils.ts                   Date utilities.
+  weather.ts                 Open-Meteo Axios client and parsing logic.
+  weatherCodes.ts            WMO code mapping.
+  weatherCopy.ts             Ironic weather copy (daily rotation pools).
+  weatherIcons.ts            Weather condition icons.
+  weatherPreview.ts          Non-shareable preview/lie mode.
+
+middleware.ts            Redirect `/?city=` → `/slug` (308).
+
+public/
+  site.webmanifest       Lightweight PWA manifest.
+
+.husky/pre-commit      Lint + test before each commit.
 
 tests/
-  *.test.ts          Unit tests for utilities and weather logic.
+  *.test.ts              Unit tests for utilities and weather logic.
 
 types/
-  *.ts               Shared types.
+  *.ts                   Shared types.
 ```
 
 ### Possible Extensions
@@ -218,4 +284,4 @@ types/
 - Smarter server-side caching to reduce repeated calls.
 - Monthly or seasonal stats, ideally still unnecessarily dramatic.
 - Future country selector, without turning this into a serious weather app.
-- GitHub Actions for automated test, lint and build checks.
+- GitHub Actions for remote CI (lint/test/build); Husky already guards broken commits locally.

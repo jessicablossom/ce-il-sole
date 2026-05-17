@@ -4,6 +4,7 @@ import { ShareCardButton } from "./ShareCardButton";
 import type { City } from "@/types/weather";
 
 type WeatherDisplayProps = {
+  calendarDayIso: string;
   children?: ReactNode;
   city: City;
   nextHourOutlookNote?: string | null;
@@ -12,13 +13,14 @@ type WeatherDisplayProps = {
 };
 
 export const WeatherDisplay = ({
+  calendarDayIso,
   children,
   city,
   nextHourOutlookNote = null,
   showShareCard = true,
   weatherCode,
 }: WeatherDisplayProps) => {
-  const mood = getWeatherMood(weatherCode, city);
+  const mood = getWeatherMood(weatherCode, city, { calendarDayIso });
   const stacksVerdictOnMobile = mood.answer === "Purtroppo no.";
 
   return (

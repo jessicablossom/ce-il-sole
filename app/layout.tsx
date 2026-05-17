@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, IBM_Plex_Sans } from "next/font/google";
 import { getMetadataBaseOrigin } from "@/lib/siteOrigin";
 import "./globals.css";
@@ -19,8 +19,13 @@ const bodoniModa = Bodoni_Moda({
 const defaultTitle = "C’è il sole?";
 const defaultDescription = "La previsione più inutile d’Italia.";
 
+export const viewport: Viewport = {
+  themeColor: "#e9edf0",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBaseOrigin()),
+  manifest: "/site.webmanifest",
   title: {
     default: defaultTitle,
     template: `%s · ${defaultTitle}`,

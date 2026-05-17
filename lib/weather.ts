@@ -200,10 +200,12 @@ export const getWeatherReport = async (
 export const getWeatherMood = (
   weatherCode: number | null | undefined,
   city?: City,
+  options?: { calendarDayIso?: string },
 ): WeatherMood => {
   const condition = getWeatherConditionFromCode(weatherCode);
 
   return getWeatherMoodCopy({
+    calendarDayIso: options?.calendarDayIso,
     city,
     condition,
     weatherCode: weatherCode ?? -1,

@@ -10,6 +10,9 @@ const SUNNY_ASIDES = [
   "Non abituarti.",
   "Una concessione temporanea.",
   "Sembra felicità, ma non firmerei nulla.",
+  "Un’eccezione. Non trasformiamola in aspettativa.",
+  "Sole in affitto giornaliero. Leggete bene il contratto.",
+  "Luce sufficiente da non essere tristi, non felici.",
 ] as const;
 
 const SOUTHERN_SUNNY_ASIDES = [
@@ -18,6 +21,8 @@ const SOUTHERN_SUNNY_ASIDES = [
   "Sì, come se servisse chiederlo.",
   "Il nord prende appunti, umidamente.",
   "Una provocazione geografica.",
+  "Sud sereno. Nessuno è sorpreso, tranne Milano.",
+  "Un classico dell’economia domestica meteorologica.",
 ] as const;
 
 const PARTLY_CLOUDY_ASIDES = [
@@ -28,6 +33,9 @@ const PARTLY_CLOUDY_ASIDES = [
   "Una giornata quasi gentile. Quasi.",
   "Sole intermittente. Speranza pure.",
   "Cielo diplomatico: concede, ma non si compromette.",
+  "Sommersi tra nuvola e ottimismo contenuto.",
+  "Un giorno che non sceglie, e così sceglie male.",
+  "Un tramonto di sole e di domande rimandate.",
 ] as const;
 
 const CLOUDY_ASIDES = [
@@ -43,10 +51,61 @@ const CLOUDY_ASIDES = [
   "Luminosità disponibile nel piano premium.",
   "Il cielo offre solo la versione gratuita.",
   "Servizio solare temporaneamente non incluso.",
+  "Meglio degli sprazzi di sole: almeno coerenti.",
+  "Un libro grigio, ma con capitoli.",
+  "L’umidità porta i suoi gossip.",
+  "Sole consegnato a un indirizzo sbagliato.",
 ] as const;
 
-const pickAside = (asides: readonly string[], weatherCode: number, city?: City): string => {
-  const seed = `${city?.id ?? "italia"}-${weatherCode}`;
+const UNKNOWN_ASIDES = [
+  "Nemmeno il cielo vuole firmare un comunicato.",
+  "Oggi le certezze prendono ferie anche loro.",
+  "Non è giorno né notte davvero. È sospetto.",
+  "La previsione è in sala d’attesa col caffè freddo.",
+  "Meglio tacere: rispondere sarebbe quasi educazione civica.",
+  "Chi lo sa? Intendiamo anche noi.",
+] as const;
+
+const NEGATIVE_ASIDES = [
+  "Naturalmente. Che domanda.",
+  "L’aria ha umidità e autocriticità.",
+  "La pioggia che non cercavi, puntualità svizzera.",
+  "Quando serve il sole arriva sempre in ritardo diplomatico.",
+  "È quel momento rumoroso degli ombrelli in strada.",
+  "Non è melodramma. È solo acqua cadendo con filosofia.",
+  "La strada brillava già dalla noia prima ancora dall’umidità.",
+  "Meglio dentro al bar che in parrocchia meteorologica.",
+  "Chi ha inventato gli ombrelli era un pessimista pragmatico.",
+  "Non è sempre il giorno migliore, ma è giorno comunque.",
+  "La neve decora anche i tuoi progetti di uscita.",
+  "Meglio nevicate che nevrosi meteorologiche.",
+  "Un temporale quando meno vuoi prendere impegni.",
+  "Acqua dall’alto: la natura lava i piatti sporcati dall’ego.",
+  "Meglio essere asciutto in sogno che bagnati in filosofia.",
+] as const;
+
+type AsideSeedContext = {
+  calendarDayIso?: string;
+  city?: City;
+};
+
+const buildAsideSeed = (weatherCode: number, context: AsideSeedContext): string => {
+  const cityKey = context.city?.id ?? "italia";
+  const dayKey = context.calendarDayIso;
+
+  if (dayKey !== undefined && dayKey.length > 0) {
+    return `${dayKey}|${cityKey}|${weatherCode}`;
+  }
+
+  return `${cityKey}-${weatherCode}`;
+};
+
+const pickAside = (
+  asides: readonly string[],
+  weatherCode: number,
+  context?: AsideSeedContext,
+): string => {
+  const seed = buildAsideSeed(weatherCode, context ?? {});
   const index =
     Array.from(seed).reduce((total, character) => total + character.charCodeAt(0), 0) %
     asides.length;
@@ -55,20 +114,27 @@ const pickAside = (asides: readonly string[], weatherCode: number, city?: City):
 };
 
 export const getWeatherMoodCopy = ({
+  calendarDayIso,
   city,
   condition,
   weatherCode,
 }: {
+  calendarDayIso?: string;
   city?: City;
   condition: WeatherCondition;
   weatherCode: number;
 }): WeatherMood => {
+  const asideCtx: AsideSeedContext = {
+    ...(city !== undefined ? { city } : {}),
+    ...(calendarDayIso !== undefined && calendarDayIso.length > 0 ? { calendarDayIso } : {}),
+  };
+
   if (condition === "unknown") {
     return {
       condition,
       icon: "☁️",
       answer: "No.",
-      aside: "Nemmeno il cielo vuole firmare un comunicato.",
+      aside: pickAside(UNKNOWN_ASIDES, weatherCode, asideCtx),
     };
   }
 
@@ -79,7 +145,7 @@ export const getWeatherMoodCopy = ({
       condition,
       icon: "☀️",
       answer: "Sì.",
-      aside: pickAside(asides, weatherCode, city),
+      aside: pickAside(asides, weatherCode, asideCtx),
     };
   }
 
@@ -88,7 +154,7 @@ export const getWeatherMoodCopy = ({
       condition,
       icon: getWeatherIconForCondition(condition),
       answer: "Sì.",
-      aside: pickAside(PARTLY_CLOUDY_ASIDES, weatherCode, city),
+      aside: pickAside(PARTLY_CLOUDY_ASIDES, weatherCode, asideCtx),
     };
   }
 
@@ -97,7 +163,7 @@ export const getWeatherMoodCopy = ({
       condition,
       icon: getWeatherIconForCondition(condition),
       answer: "Purtroppo no.",
-      aside: "Naturalmente. Che domanda.",
+      aside: pickAside(NEGATIVE_ASIDES, weatherCode, asideCtx),
     };
   }
 
@@ -105,6 +171,6 @@ export const getWeatherMoodCopy = ({
     condition: "cloudy",
     icon: getWeatherIconForCondition("cloudy"),
     answer: "No.",
-    aside: pickAside(CLOUDY_ASIDES, weatherCode, city),
+    aside: pickAside(CLOUDY_ASIDES, weatherCode, asideCtx),
   };
 };

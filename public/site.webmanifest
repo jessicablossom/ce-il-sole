@@ -1,0 +1,18 @@
+{
+  "name": "C'è il sole?",
+  "short_name": "Sole?",
+  "description": "La previsione più inutile d'Italia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e9edf0",
+  "theme_color": "#e9edf0",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

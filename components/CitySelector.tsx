@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { type KeyboardEvent, useMemo, useState, useTransition } from "react";
+import { buildRelativeHomeHref } from "@/lib/buildHomeHref";
 import { filterCitiesByQuery, getNextActiveCityId } from "@/lib/citySearch";
+import { canonicalHomeRecord } from "@/lib/homeUrlRecord";
 import type { City } from "@/types/weather";
 
 type CitySelectorProps = {
@@ -50,7 +52,7 @@ export const CitySelector = ({ cities, selectedCityId }: CitySelectorProps) => {
 
     if (cityId !== selectedCityId) {
       startTransition(() => {
-        router.push(`/?city=${cityId}`);
+        router.push(buildRelativeHomeHref(canonicalHomeRecord({ resolvedCityId: cityId })));
       });
     }
   };

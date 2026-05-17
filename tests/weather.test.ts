@@ -29,8 +29,8 @@ describe("weather utilities", () => {
     expect(getWeatherMood(61)).toMatchObject({
       icon: "🌧️",
       answer: "Purtroppo no.",
-      aside: "Naturalmente. Che domanda.",
     });
+    expect(getWeatherMood(61).aside.length).toBeGreaterThan(12);
     expect(getWeatherMood(71)).toMatchObject({
       icon: "❄️",
       answer: "Purtroppo no.",
@@ -76,6 +76,12 @@ describe("weather utilities", () => {
     expect(getWeatherMood(3, { ...testCity, id: "milano" }).aside).toBe(
       getWeatherMood(3, { ...testCity, id: "milano" }).aside,
     );
+  });
+
+  it("rotates sunny asides across calendar days in the selected city TZ", () => {
+    expect(
+      getWeatherMood(0, testCity, { calendarDayIso: "2026-05-01" }).aside,
+    ).not.toBe(getWeatherMood(0, testCity, { calendarDayIso: "2026-05-02" }).aside);
   });
 
   it("parses Open-Meteo daily weather payloads", () => {
