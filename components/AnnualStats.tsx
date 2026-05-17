@@ -45,7 +45,7 @@ export function AnnualStats({
           </p>
           <p className="mx-auto mb-3 text-xs font-medium leading-snug opacity-95">
             Altri{" "}
-            <span className="tabular-nums">{sansSum}</span> giorni dall&apos;archivio (con il solito
+            <span className="tabular-nums px-0.5">{sansSum}</span> giorni dall&apos;archivio (con il solito
             ritardo burocratico).
           </p>
           <div className="overflow-x-auto">
