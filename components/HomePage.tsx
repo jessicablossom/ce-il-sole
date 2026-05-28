@@ -148,21 +148,22 @@ export const HomePage = async ({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-8 px-0 pt-7 sm:gap-10 lg:px-[20%] lg:pt-9">
-        <CitySelector
-          key={city.id}
-          cities={CITIES}
-          resolvedPlaceName={city.name}
-          selectedCityId={city.id}
-        />
+      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-0 pt-7 sm:gap-10 lg:px-[20%] lg:pt-9">
+        <div className="shrink-0">
+          <CitySelector
+            key={city.id}
+            cities={CITIES}
+            resolvedPlaceName={city.name}
+            selectedCityId={city.id}
+          />
+        </div>
 
         {isNight ? (
-          <>
-            <NightDisplay
-              calendarDayIso={calendarDayIso}
-              city={city}
-              weatherCode={nightRecapWeatherCode}
-            />
+          <NightDisplay
+            calendarDayIso={calendarDayIso}
+            city={city}
+            weatherCode={nightRecapWeatherCode}
+          >
             {weatherReport ? (
               <AnnualStats
                 cityName={weatherReport.city.name}
@@ -172,7 +173,7 @@ export const HomePage = async ({
                 timeZone={weatherReport.city.timeZone}
               />
             ) : null}
-          </>
+          </NightDisplay>
         ) : isPreview || weatherReport ? (
           <>
             <WeatherDisplay

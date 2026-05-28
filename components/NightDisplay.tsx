@@ -1,21 +1,28 @@
 import { getWeatherMood } from "@/lib/weather";
+import type { ReactNode } from "react";
 import type { City } from "@/types/weather";
 
 type NightDisplayProps = {
   calendarDayIso: string;
+  children?: ReactNode;
   city: City;
   weatherCode: number | null;
 };
 
-export const NightDisplay = ({ calendarDayIso, city, weatherCode }: NightDisplayProps) => {
+export const NightDisplay = ({
+  calendarDayIso,
+  children,
+  city,
+  weatherCode,
+}: NightDisplayProps) => {
   const dayMood = getWeatherMood(weatherCode, city, { calendarDayIso });
 
   return (
     <section
       aria-label="È notte"
-      className="flex min-h-0 flex-1 flex-col items-center justify-center py-5 text-center sm:py-7"
+      className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto py-5 text-center sm:py-7"
     >
-      <p className="ui-meta-label mb-10 text-xs font-semibold uppercase leading-none tracking-widest">
+      <p className="ui-meta-label mb-5 text-xs font-semibold uppercase leading-none tracking-widest">
         Previsione sospesa per ovvi motivi
       </p>
       <h2 className="whitespace-nowrap font-serif text-7xl leading-none tracking-tighter text-[var(--foreground)] sm:text-9xl">
@@ -42,6 +49,7 @@ export const NightDisplay = ({ calendarDayIso, city, weatherCode }: NightDisplay
         </p>
         <p className="mt-3 text-base font-medium text-[var(--muted)]">{dayMood.aside}</p>
       </div>
+      {children}
     </section>
   );
 };
